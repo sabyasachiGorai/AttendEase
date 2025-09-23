@@ -4,12 +4,13 @@ Of course. Here is the complete explanation of your database schema in your requ
 
 ### 🏢 1. departments Table
 
+```
 sql
 CREATE TABLE departments (
     dept_id SERIAL PRIMARY KEY,
     dept_name VARCHAR(100) UNIQUE NOT NULL
 );
-
+```
 
   * *Purpose:* This is a foundational *lookup table* that stores a unique list of all academic departments in the institution, such as "Computer Science" or "Mathematics". It acts as a central reference for departments.
   * *Relationships:*
