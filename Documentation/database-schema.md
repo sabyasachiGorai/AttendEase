@@ -1,11 +1,10 @@
-Of course. Here is the complete explanation of your database schema in your requested format, with the SQL query for each table presented first, followed by its purpose and relationships.
 
+# AttendEase Database Schema
 -----
 
-### 🏢 1. departments Table
+### 🏢 1. Departments Table
 
-```
-sql
+```sql
 CREATE TABLE departments (
     dept_id SERIAL PRIMARY KEY,
     dept_name VARCHAR(100) UNIQUE NOT NULL
@@ -20,15 +19,15 @@ CREATE TABLE departments (
 
 -----
 
-### 🎓 2. courses Table
+### 🎓 2. Courses Table
 
-sql
+```sql
 CREATE TABLE courses (
     course_id SERIAL PRIMARY KEY,
     course_name VARCHAR(100) UNIQUE NOT NULL,
     dept_id INT NOT NULL REFERENCES departments(dept_id) ON DELETE CASCADE
 );
-
+```
 
   * *Purpose:* This table holds the list of academic programs or degrees offered by the institution, like "Master of Computer Applications (MCA)" or "MSc in Physics".
   * *Relationships:*
@@ -38,16 +37,16 @@ CREATE TABLE courses (
 
 -----
 
-### 📚 3. subjects Table
+### 📚 3. Subjects Table
 
-sql
+```sql
 CREATE TABLE subjects (
     subject_id SERIAL PRIMARY KEY,
     subject_code VARCHAR(50) UNIQUE NOT NULL,
     subject_name VARCHAR(100) NOT NULL,
     credits INT DEFAULT 3
 );
-
+```
 
   * *Purpose:* This table is a master list of all individual subjects or papers that can be taught, such as "Data Structures," "Quantum Mechanics," or "Database Management Systems." Crucially, a subject here is an independent entity, not tied to any single course.
   * *Relationships:*
@@ -55,16 +54,16 @@ CREATE TABLE subjects (
 
 -----
 
-### 🔗 4. course_subject Table
+### 🔗 4. Course_Subject Table
 
-sql
+```sql
 CREATE TABLE course_subject (
     cs_id SERIAL PRIMARY KEY,
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
     subject_id INT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
     UNIQUE(course_id, subject_id)
 );
-
+```
 
   * *Purpose:* This is a *junction table* (or mapping table). Its sole purpose is to create a *many-to-many relationship* between courses and subjects. It allows you to define the curriculum for each course.
   * *Relationships:*
@@ -73,9 +72,9 @@ CREATE TABLE course_subject (
 
 -----
 
-### 🧑‍🏫 5. teachers Table
+### 🧑‍🏫 5. Teachers Table
 
-sql
+```sql
 CREATE TABLE teachers (
     teacher_id SERIAL PRIMARY KEY,
     employee_code VARCHAR(50) UNIQUE,
@@ -88,7 +87,7 @@ CREATE TABLE teachers (
     joining_date DATE,
     status VARCHAR(20) DEFAULT 'Active'
 );
-
+```
 
   * *Purpose:* This table stores the profile information for all teachers, faculty members, and professors. It includes details like their name, employee code, email, and designation.
   * *Relationships:*
@@ -98,16 +97,16 @@ CREATE TABLE teachers (
 
 -----
 
-### 🔗 6. teacher_subject Table
+### 🔗 6. Teacher_Subject Table
 
-sql
+```sql
 CREATE TABLE teacher_subject (
     ts_id SERIAL PRIMARY KEY,
     teacher_id INT NOT NULL REFERENCES teachers(teacher_id) ON DELETE CASCADE,
     subject_id INT NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
     UNIQUE(teacher_id, subject_id)
 );
-
+```
 
   * *Purpose:* This is another *junction table. It maps which teachers are assigned to or are qualified to teach which subjects, creating a **many-to-many relationship* between them. Each row represents a specific class offering (e.g., Dr. Smith teaching Data Structures).
   * *Relationships:*
@@ -116,9 +115,9 @@ CREATE TABLE teacher_subject (
 
 -----
 
-### 🧑‍🎓 7. students Table
+### 🧑‍🎓 7. Students Table
 
-sql
+```sql
 CREATE TABLE students (
     student_id SERIAL PRIMARY KEY,
     roll_number VARCHAR(50) UNIQUE NOT NULL,
@@ -129,7 +128,7 @@ CREATE TABLE students (
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
     year_of_study INT NOT NULL CHECK (year_of_study BETWEEN 1 AND 5)
 );
-
+```
 
   * *Purpose:* This table contains all the necessary profile information for each student, including their roll number, name, and the course they are enrolled in.
   * *Relationships:*
@@ -138,9 +137,9 @@ CREATE TABLE students (
 
 -----
 
-### 📝 8. attendance Table
+### 📝 8. Attendance Table
 
-sql
+```sql
 CREATE TABLE attendance (
     attendance_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -149,7 +148,7 @@ CREATE TABLE attendance (
     status VARCHAR(10) CHECK (status IN ('Present','Absent','Late')) NOT NULL,
     UNIQUE(student_id, ts_id, attendance_date)
 );
-
+```
 
   * *Purpose:* This is a *transactional table*. It is used to record the attendance status ('Present', 'Absent', 'Late') of a student for a specific class on a specific date. Each row is a single attendance record.
   * *Relationships:*
@@ -160,7 +159,7 @@ CREATE TABLE attendance (
 
 ### 🎉 9. events Table
 
-sql
+```sql
 CREATE TABLE events (
     event_id SERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
@@ -173,7 +172,7 @@ CREATE TABLE events (
     approval_status VARCHAR(20) DEFAULT 'Pending',
     CONSTRAINT chk_one_creator CHECK ( (created_by_teacher IS NULL) OR (created_by_student IS NULL) )
 );
-
+```
 
   * *Purpose:* This table stores information about upcoming events, announcements, holidays, or workshops.
   * *Relationships:*
@@ -184,7 +183,7 @@ CREATE TABLE events (
 
 ### 🔗 10. student_subject_enrollments Table
 
-sql
+```sql
 CREATE TABLE student_subject_enrollments (
     enrollment_id SERIAL PRIMARY KEY,
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
@@ -193,7 +192,7 @@ CREATE TABLE student_subject_enrollments (
     enrollment_date DATE DEFAULT CURRENT_DATE,
     UNIQUE(student_id, subject_id, semester)
 );
-
+```
 
   * *Purpose:* This *junction table* tracks the enrollment of students in various subjects for a specific semester. This table answers the question, "Which subjects is this student taking this semester?"
   * *Relationships:*
@@ -203,15 +202,15 @@ CREATE TABLE student_subject_enrollments (
 
 ### 🗓 11. subject_offerings Table
 
-sql
+```sql
 CREATE TABLE subject_offerings (
     offering_id SERIAL PRIMARY KEY,
     subject_id INTEGER NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
     semester INTEGER NOT NULL CHECK (semester >= 1 AND semester <= 8),
     UNIQUE (subject_id, semester)
 );
+```
 
-
-  * *Purpose:* This is a *configuration table*. It defines the standard curriculum structure by specifying in which semester a particular subject is typically offered. For example, it would store that "Advanced Algorithms" is an offering for the 3rd semester.
+  * *Purpose:* This table shows which subjects are taught in which semester. For example, it can say that "Advanced Algorithms" is offered in the 3rd semester.
   * *Relationships:*
       * It has a many-to-one relationship with the subjects table, mapping a subject to one or more semesters.
