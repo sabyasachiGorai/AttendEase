@@ -2,7 +2,7 @@
 # AttendEase Database Schema
 -----
 
-### 🏢 1. Departments Table
+### 1. Departments Table
 
 ```sql
 CREATE TABLE departments (
@@ -19,7 +19,7 @@ CREATE TABLE departments (
 
 -----
 
-### 🎓 2. Courses Table
+###  2. Courses Table
 
 ```sql
 CREATE TABLE courses (
@@ -37,7 +37,7 @@ CREATE TABLE courses (
 
 -----
 
-### 📚 3. Subjects Table
+###  3. Subjects Table
 
 ```sql
 CREATE TABLE subjects (
@@ -54,7 +54,7 @@ CREATE TABLE subjects (
 
 -----
 
-### 🔗 4. Course_Subject Table
+###  4. Course_Subject Table
 
 ```sql
 CREATE TABLE course_subject (
@@ -72,7 +72,7 @@ CREATE TABLE course_subject (
 
 -----
 
-### 🧑‍🏫 5. Teachers Table
+###  5. Teachers Table
 
 ```sql
 CREATE TABLE teachers (
@@ -97,7 +97,7 @@ CREATE TABLE teachers (
 
 -----
 
-### 🔗 6. Teacher_Subject Table
+###  6. Teacher_Subject Table
 
 ```sql
 CREATE TABLE teacher_subject (
@@ -115,7 +115,7 @@ CREATE TABLE teacher_subject (
 
 -----
 
-### 🧑‍🎓 7. Students Table
+###  7. Students Table
 
 ```sql
 CREATE TABLE students (
@@ -137,7 +137,7 @@ CREATE TABLE students (
 
 -----
 
-### 📝 8. Attendance Table
+###  8. Attendance Table
 
 ```sql
 CREATE TABLE attendance (
@@ -157,7 +157,7 @@ CREATE TABLE attendance (
 
 -----
 
-### 🎉 9. events Table
+###  9. events Table
 
 ```sql
 CREATE TABLE events (
