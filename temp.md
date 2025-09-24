@@ -1,0 +1,1 @@
+hello chatgpt i need some help with my django project i have not get started i have made an repo in github a frontend folder and backend folder inside of that backend folder i want to initialize virtual environmetn and also all the stuffs to get started with a django project i am working in a github codespace so help me out to made a bsice start so that i can show to my teacher
