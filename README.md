@@ -73,11 +73,8 @@ You can still run the frontend and backend independently for development and tes
    # yarn install
    ```
 
-3. **Configure API endpoint (if needed)**
-   You might have a config file (e.g. `.env.development`, or `config.js`) where the backend base URL is set.
-   For now, since linking is not done, you can point API calls to the mock server (if available) or stub endpoints.
 
-4. **Start frontend dev server**
+3. **Start frontend dev server**
 
    ```bash
    npm start
@@ -89,6 +86,5 @@ You can still run the frontend and backend independently for development and tes
 
 * The **linking between frontend and backend** (actual API calls, authentication, token passing, etc.) is under development and will be added soon.
 * Once linking is done, you will be able to run both together and the frontend will communicate with the backend seamlessly.
-* In the meantime, you can work on frontend UI or backend APIs in isolation.
 
 
