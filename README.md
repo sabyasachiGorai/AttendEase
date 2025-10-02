@@ -15,3 +15,80 @@ Includes **automated WhatsApp/Telegram reminders**, **real-time attendance track
 - Backend: Django  
 - Database: PostgreSQL  
 - Messaging API: Twilio WhatsApp API (or Telegram Bot API)
+
+
+## 📦 Getting Started (Frontend & Backend Separately)
+
+Currently, the frontend and backend are **not fully linked**. The integrations (e.g. API routing, authentication flow) are under development and will come soon.
+
+You can still run the frontend and backend independently for development and testing.
+
+### Backend Setup
+
+1. **Go to the backend folder**  
+   ```bash
+   cd backend
+
+
+2. **Install dependencies**
+   (assuming you’re using a virtual environment)
+
+   ```bash
+   python -m venv venv
+   source venv/bin/activate   # on Linux/macOS  
+   venv\Scripts\activate      # on Windows  
+   pip install -r requirements.txt
+   ```
+
+3. **Set up environment variables / config**
+   Copy `.env.example` to `.env` (or otherwise configure your settings: database, SECRET_KEY, etc.)
+
+4. **Run database migrations & seed (if any)**
+
+   ```bash
+   python manage.py migrate
+   ```
+
+5. **Start backend server**
+
+   ```bash
+   python manage.py runserver
+   ```
+
+   By default, this will run on `http://127.0.0.1:8000` (unless configured otherwise).
+
+### Frontend Setup
+
+1. **Go to the frontend folder**
+
+   ```bash
+   cd frontend
+   ```
+
+2. **Install Node dependencies**
+
+   ```bash
+   npm install
+   # or if you use yarn:
+   # yarn install
+   ```
+
+3. **Configure API endpoint (if needed)**
+   You might have a config file (e.g. `.env.development`, or `config.js`) where the backend base URL is set.
+   For now, since linking is not done, you can point API calls to the mock server (if available) or stub endpoints.
+
+4. **Start frontend dev server**
+
+   ```bash
+   npm start
+   ```
+
+   This will run the React app (often on `http://localhost:3000`).
+
+### Notes & Future Work
+
+* The **linking between frontend and backend** (actual API calls, authentication, token passing, etc.) is under development and will be added soon.
+* Once linking is done, you will be able to run both together and the frontend will communicate with the backend seamlessly.
+* In the meantime, you can work on frontend UI or backend APIs in isolation.
+
+
