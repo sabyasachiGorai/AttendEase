@@ -37,9 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "myapp",
     "attend_ease",
-    "attendance"
 ]
 
 MIDDLEWARE = [
