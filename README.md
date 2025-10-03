@@ -17,74 +17,69 @@ Includes **automated WhatsApp/Telegram reminders**, **real-time attendance track
 - Messaging API: Twilio WhatsApp API (or Telegram Bot API)
 
 
-## 📦 Getting Started (Frontend & Backend Separately)
-
-Currently, the frontend and backend are **not fully linked**. The integrations (e.g. API routing, authentication flow) are under development and will come soon.
-
-You can still run the frontend and backend independently for development and testing.
-
-### Backend Setup
-
-1. **Go to the backend folder**  
-   ```bash
-   cd backend
 
 
-2. **Install dependencies**
-   (assuming you’re using a virtual environment)
+# AttendEase - Minimal Django Backend (Student only)
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate   # on Linux/macOS  
-   venv\Scripts\activate      # on Windows  
-   pip install -r requirements.txt
-   ```
+This repository provides a minimal Django backend that exposes Student CRUD endpoints with an `attendance_percentage` field. Uses **SQLite3** for easy local testing.
 
-3. **Set up environment variables / config**
-   Copy `.env.example` to `.env` (or otherwise configure your settings: database, SECRET_KEY, etc.)
+## Requirements
 
-4. **Run database migrations & seed (if any)**
+- Python 3.10+
+- pip
+- (optional) git
 
-   ```bash
-   python manage.py migrate
-   ```
+## Setup (local dev)
 
-5. **Start backend server**
-
-   ```bash
-   python manage.py runserver
-   ```
-
-   By default, this will run on `http://127.0.0.1:8000` (unless configured otherwise).
-
-### Frontend Setup
-
-1. **Go to the frontend folder**
-
-   ```bash
-   cd frontend
-   ```
-
-2. **Install Node dependencies**
-
-   ```bash
-   npm install
-   # or if you use yarn:
-   # yarn install
-   ```
+1. Clone / create project folder and create venv
+```bash
+git clone <repo-url> AttendEase-backend
+cd AttendEase-backend
+python -m venv venv
+# activate venv:
+# macOS / Linux:
+source venv/bin/activate
+# Windows PowerShell:
+venv\Scripts\Activate.ps1
 
 
-3. **Start frontend dev server**
+Install dependencies
 
-   ```bash
-   npm start
-   ```
+pip install -r requirements.txt
+# or
+pip install Django djangorestframework django-cors-headers
 
-   This will run the React app (often on `http://localhost:3000`).
 
-### Notes & Future Work
+Apply migrations
 
-* The **linking between frontend and backend** (actual API calls, authentication, token passing, etc.) is under development and will be added soon.
-* Once linking is done, you will be able to run both together and the frontend will communicate with the backend seamlessly.
+python manage.py makemigrations
+python manage.py migrate
 
+
+(Optional) Create admin user
+
+python manage.py createsuperuser
+
+
+Run server
+
+python manage.py runserver
+
+
+Server runs at http://127.0.0.1:8000/. API root prefix is /api/.
+
+API Endpoints
+
+POST /api/students/ — create a student
+Request JSON: { "name":"...", "email":"...", "roll_number":"...", "attendance_percentage":"85.50" }
+
+GET /api/students/ — list all students
+
+GET /api/students/<id>/ — fetch a single student
+
+PUT /api/students/<id>/ or PATCH /api/students/<id>/ — update a student (PUT requires all fields; PATCH can update only attendance)
+
+Frontend testing
+
+See test-front.html (example file). Use fetch from your frontend to call http://127.0.0.1:8000/api/students/.
 
