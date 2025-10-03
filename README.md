@@ -1,85 +1,144 @@
-# Campus Event & Attendance Portal
+# 📚 Campus Event & Attendance Portal
 
-A web portal for students and faculty to **view and post events or announcements** with optional admin approval.  
+A web portal for students and faculty to **view and post events or announcements** with optional admin approval.
 Includes **automated WhatsApp/Telegram reminders**, **real-time attendance tracking**, shortage alerts, and teacher overrides for manual updates.
 
+---
+
 ## ✨ Features
-- Centralized feed & calendar for upcoming events and announcements  
-- Automated reminders via WhatsApp/Telegram
-- Optional admin approval workflow  
-- Real-time digital attendance recording (teacher-initiated)  
-- Attendance percentage breakdown, forecasting & shortage alerts  
+
+* 📅 Centralized feed & calendar for upcoming events and announcements
+* 🔔 Automated reminders via WhatsApp/Telegram
+* ✅ Optional admin approval workflow
+* 📝 Real-time digital attendance recording (teacher-initiated)
+* 📊 Attendance percentage breakdown, forecasting & shortage alerts
+
+---
 
 ## 🛠 Tech Stack
-- Frontend: React  
-- Backend: Django  
-- Database: PostgreSQL  
-- Messaging API: Twilio WhatsApp API (or Telegram Bot API)
 
+* **Frontend:** React
+* **Backend:** Django
+* **Database:** PostgreSQL, Sqlite3
+* **Messaging API:** Twilio WhatsApp API / Telegram Bot API
 
+---
 
+# ⚡ AttendEase - Minimal Django Backend (Student Only)
 
-# AttendEase - Minimal Django Backend (Student only)
+This repository provides a **minimal Django backend** that exposes **Student CRUD endpoints** with an `attendance_percentage` field.
+👉 Uses **SQLite3** for easy local testing.
 
-This repository provides a minimal Django backend that exposes Student CRUD endpoints with an `attendance_percentage` field. Uses **SQLite3** for easy local testing.
+---
 
-## Requirements
+## 📦 Requirements
 
-- Python 3.10+
-- pip
-- (optional) git
+* Python **3.10+**
+* pip
+* (optional) git
 
-## Setup (local dev)
+---
 
-1. Clone / create project folder and create venv
+## ⚙️ Setup (Local Development)
+
+### 1. Clone project & create virtual environment
+
 ```bash
 git clone <repo-url> AttendEase-backend
 cd AttendEase-backend
 python -m venv venv
-# activate venv:
-# macOS / Linux:
-source venv/bin/activate
-# Windows PowerShell:
-venv\Scripts\Activate.ps1
+```
 
+Activate venv:
 
-Install dependencies
+* **macOS / Linux**
 
+  ```bash
+  source venv/bin/activate
+  ```
+* **Windows (PowerShell)**
+
+  ```powershell
+  venv\Scripts\Activate.ps1
+  ```
+
+---
+
+### 2. Install dependencies
+
+```bash
 pip install -r requirements.txt
-# or
+# or manually:
 pip install Django djangorestframework django-cors-headers
+```
 
+---
 
-Apply migrations
+### 3. Apply migrations
 
+```bash
 python manage.py makemigrations
 python manage.py migrate
+```
 
+---
 
-(Optional) Create admin user
+### 4. (Optional) Create admin user
 
+```bash
 python manage.py createsuperuser
+```
 
+---
 
-Run server
+### 5. Run development server
 
+```bash
 python manage.py runserver
+```
 
+Server runs at 👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+API root prefix 👉 **/api/**
 
-Server runs at http://127.0.0.1:8000/. API root prefix is /api/.
+---
 
-API Endpoints
+## 🔗 API Endpoints
 
-POST /api/students/ — create a student
-Request JSON: { "name":"...", "email":"...", "roll_number":"...", "attendance_percentage":"85.50" }
+### ➕ Create Student
 
-GET /api/students/ — list all students
+**POST** `/api/students/`
 
-GET /api/students/<id>/ — fetch a single student
+```json
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "roll_number": "CSE001",
+  "attendance_percentage": "85.50"
+}
+```
 
-PUT /api/students/<id>/ or PATCH /api/students/<id>/ — update a student (PUT requires all fields; PATCH can update only attendance)
+### 📜 List Students
 
-Frontend testing
+**GET** `/api/students/`
 
-See test-front.html (example file). Use fetch from your frontend to call http://127.0.0.1:8000/api/students/.
+### 🔍 Get Student by ID
 
+**GET** `/api/students/<id>/`
+
+### ✏️ Update Student
+
+**PUT** `/api/students/<id>/` — update all fields
+**PATCH** `/api/students/<id>/` — update partial fields (e.g., only attendance)
+
+---
+
+## 🖥️ Frontend Testing
+
+Use the sample `test-front.html` file.
+From your frontend, call:
+
+```http
+http://127.0.0.1:8000/api/students/
+```
+
+---
