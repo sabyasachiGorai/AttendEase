@@ -1,6 +1,11 @@
 asgiref==3.10.0
+dj-database-url==3.0.1
 Django==5.2.8
 djangorestframework==3.16.1
+gunicorn==23.0.0
 mysqlclient==2.2.7
+packaging==25.0
+psycopg2-binary==2.9.11
 sqlparse==0.5.3
 tzdata==2025.2
+whitenoise==6.11.0
