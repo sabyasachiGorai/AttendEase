@@ -1,5 +1,5 @@
 idea.md
-AttendEase-backend/
+
 db.sqlite3
 *.sqlite3
 *.sqlite3.bak
@@ -9,3 +9,6 @@ venv/
 __pycache__/
 *.pyc
 AttendEase-frontend/
+AttendEase-backend/
+Documentation/
+.vscode/
