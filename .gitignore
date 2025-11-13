@@ -1,0 +1,7 @@
+idea.md
+AttendEase-backend/
+db.sqlite3
+*.sqlite3
+*.sqlite3.bak
+views2.py
+venv/
