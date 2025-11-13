@@ -27,6 +27,7 @@ CREATE TABLE courses (
     course_name VARCHAR(100) UNIQUE NOT NULL,
     dept_id INT NOT NULL REFERENCES departments(dept_id) ON DELETE CASCADE
 );
+
 ```
 
   * *Purpose:* This table holds the list of academic programs or degrees offered by the institution, like "Master of Computer Applications (MCA)" or "MSc in Physics".
@@ -40,12 +41,14 @@ CREATE TABLE courses (
 ###  3. Subjects Table
 
 ```sql
+
 CREATE TABLE subjects (
     subject_id SERIAL PRIMARY KEY,
     subject_code VARCHAR(50) UNIQUE NOT NULL,
     subject_name VARCHAR(100) NOT NULL,
     credits INT DEFAULT 3
 );
+
 ```
 
   * *Purpose:* This table is a master list of all individual subjects or papers that can be taught, such as "Data Structures," "Quantum Mechanics," or "Database Management Systems." Crucially, a subject here is an independent entity, not tied to any single course.
@@ -126,6 +129,7 @@ CREATE TABLE students (
     email VARCHAR(100) UNIQUE,
     phone_number VARCHAR(20),
     course_id INT NOT NULL REFERENCES courses(course_id) ON DELETE CASCADE,
+    // add in which semester
     year_of_study INT NOT NULL CHECK (year_of_study BETWEEN 1 AND 5)
 );
 ```
@@ -145,7 +149,7 @@ CREATE TABLE attendance (
     student_id INT NOT NULL REFERENCES students(student_id) ON DELETE CASCADE,
     ts_id INT NOT NULL REFERENCES teacher_subject(ts_id) ON DELETE CASCADE,
     attendance_date DATE NOT NULL,
-    status VARCHAR(10) CHECK (status IN ('Present','Absent','Late')) NOT NULL,
+    status VARCHAR(10) CHECK (status IN ('Present','Absent')) NOT NULL,
     UNIQUE(student_id, ts_id, attendance_date)
 );
 ```
@@ -157,31 +161,8 @@ CREATE TABLE attendance (
 
 -----
 
-###  9. events Table
 
-```sql
-CREATE TABLE events (
-    event_id SERIAL PRIMARY KEY,
-    title VARCHAR(200) NOT NULL,
-    description TEXT,
-    event_date DATE NOT NULL,
-    event_time TIME,
-    location VARCHAR(200),
-    created_by_teacher INT REFERENCES teachers(teacher_id) ON DELETE SET NULL,
-    created_by_student INT REFERENCES students(student_id) ON DELETE SET NULL,
-    approval_status VARCHAR(20) DEFAULT 'Pending',
-    CONSTRAINT chk_one_creator CHECK ( (created_by_teacher IS NULL) OR (created_by_student IS NULL) )
-);
-```
-
-  * *Purpose:* This table stores information about upcoming events, announcements, holidays, or workshops.
-  * *Relationships:*
-      * **teachers**: An event can be created by a teacher. This link is optional (ON DELETE SET NULL), so the event remains even if the teacher's record is deleted.
-      * **students**: An event can also be created by a student (e.g., for a student-led club). The CHECK constraint ensures an event cannot have both a teacher and a student as its creator.
-
------
-
-### 🔗 10. student_subject_enrollments Table
+###  10. student_subject_enrollments Table
 
 ```sql
 CREATE TABLE student_subject_enrollments (
@@ -199,18 +180,3 @@ CREATE TABLE student_subject_enrollments (
       * It creates a *many-to-many relationship* between students and subjects.
 
 -----
-
-### 🗓 11. subject_offerings Table
-
-```sql
-CREATE TABLE subject_offerings (
-    offering_id SERIAL PRIMARY KEY,
-    subject_id INTEGER NOT NULL REFERENCES subjects(subject_id) ON DELETE CASCADE,
-    semester INTEGER NOT NULL CHECK (semester >= 1 AND semester <= 8),
-    UNIQUE (subject_id, semester)
-);
-```
-
-  * *Purpose:* This table shows which subjects are taught in which semester. For example, it can say that "Advanced Algorithms" is offered in the 3rd semester.
-  * *Relationships:*
-      * It has a many-to-one relationship with the subjects table, mapping a subject to one or more semesters.

@@ -5,3 +5,7 @@ db.sqlite3
 *.sqlite3.bak
 views2.py
 venv/
+
+__pycache__/
+*.pyc
+AttendEase-frontend/

@@ -1,80 +1,94 @@
-# 📚 Campus Event & Attendance Portal
+# ⚡ AttendEase – Campus Attendance & Event Management Backend
 
-A web portal for students and faculty to **view and post events or announcements** with optional admin approval.
-Includes **automated WhatsApp/Telegram reminders**, **real-time attendance tracking**, shortage alerts, and teacher overrides for manual updates.
+A lightweight **Django backend** powering the AttendEase platform —
+a modern system for **event management, automated reminders, and real-time attendance tracking** for students and faculty.
+
+This backend provides the foundation for handling **students, attendance, routing, and data modeling**, designed to integrate smoothly with a React frontend.
 
 ---
 
-## ✨ Features
+## ✨ Key Capabilities
 
-* 📅 Centralized feed & calendar for upcoming events and announcements
-* 🔔 Automated reminders via WhatsApp/Telegram
-* ✅ Optional admin approval workflow
-* 📝 Real-time digital attendance recording (teacher-initiated)
-* 📊 Attendance percentage breakdown, forecasting & shortage alerts
+* 🔐 **Modular Django app structure**
+* 📊 **Attendance tracking logic** & percentage calculations
+* 👥 **Student management**
+* 🔄 **REST API architecture** using Django REST Framework
+* 🔗 **CORS-enabled backend** for easy frontend integration
+* 💾 **SQLite database** for local development
+* 📦 Clean project layout following industry best practices
+* 🚀 Ready for expansion into events, reminders, teachers, and more
 
 ---
 
 ## 🛠 Tech Stack
 
-* **Frontend:** React
-* **Backend:** Django
-* **Database:** PostgreSQL, Sqlite3
-* **Messaging API:** Twilio WhatsApp API / Telegram Bot API
+| Layer    | Technology                    |
+| -------- | ----------------------------- |
+| Backend  | Django, Django REST Framework |
+| Database | SQLite3 (local development)   |
+| Frontend | React (separate repository)   |
+| Tools    | Virtual Environment, Git      |
 
 ---
 
-# ⚡ AttendEase - Minimal Django Backend (Student Only)
+# ⚙️ Local Setup Guide
 
-This repository provides a **minimal Django backend** that exposes **Student CRUD endpoints** with an `attendance_percentage` field.
-👉 Uses **SQLite3** for easy local testing.
-
----
-
-## 📦 Requirements
-
-* Python **3.10+**
-* pip
-* (optional) git
+Follow these steps to set up the backend locally in a clean, professional workflow.
 
 ---
 
-## ⚙️ Setup (Local Development)
-
-### 1. Clone project & create virtual environment
+## 1️⃣ Clone the Project
 
 ```bash
-git clone <repo-url> AttendEase-backend
-cd AttendEase-backend
+git clone <repo-url> attendease-backend
+cd attendease-backend
+```
+
+---
+
+## 2️⃣ Create & Activate Virtual Environment
+
+```bash
 python -m venv venv
 ```
 
-Activate venv:
+### Activate venv
 
-* **macOS / Linux**
+**Windows (PowerShell):**
 
-  ```bash
-  source venv/bin/activate
-  ```
-* **Windows (PowerShell)**
+```powershell
+venv\Scripts\Activate.ps1
+```
 
-  ```powershell
-  venv\Scripts\Activate.ps1
-  ```
+**Windows (cmd):**
 
----
+```cmd
+venv\Scripts\activate
+```
 
-### 2. Install dependencies
+**macOS / Linux:**
 
 ```bash
-pip install -r requirements.txt
-# or manually:
-pip install Django djangorestframework django-cors-headers
+source venv/bin/activate
 ```
 
 ---
 
-### 3. Apply migrations
+## 3️⃣ Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+If you add new packages, don’t forget:
+
+```bash
+pip freeze > requirements.txt
+```
+
+---
+
+## 4️⃣ Apply Migrations
 
 ```bash
 python manage.py makemigrations
@@ -83,7 +97,7 @@ python manage.py migrate
 
 ---
 
-### 4. (Optional) Create admin user
+## 5️⃣ (Optional) Create Admin User
 
 ```bash
 python manage.py createsuperuser
@@ -91,54 +105,50 @@ python manage.py createsuperuser
 
 ---
 
-### 5. Run development server
+## 6️⃣ Start Development Server
 
 ```bash
 python manage.py runserver
 ```
 
-Server runs at 👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
-API root prefix 👉 **/api/**
+Server will run at:
+👉 **[http://127.0.0.1:8000/](http://127.0.0.1:8000/)**
+
+Your API will be accessible under:
+👉 **/api/**
 
 ---
 
-## 🔗 API Endpoints
+# 📁 Project Structure
 
-### ➕ Create Student
-
-**POST** `/api/students/`
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "roll_number": "CSE001",
-  "attendance_percentage": "85.50"
-}
 ```
-
-### 📜 List Students
-
-**GET** `/api/students/`
-
-### 🔍 Get Student by ID
-
-**GET** `/api/students/<id>/`
-
-### ✏️ Update Student
-
-**PUT** `/api/students/<id>/` — update all fields
-**PATCH** `/api/students/<id>/` — update partial fields (e.g., only attendance)
+attendease-backend/
+│
+├── attendease_backend2/        # Project config (settings, urls, wsgi)
+├── core/                       # Student app (models, views, serializers)
+│   ├── models.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── urls.py
+│   └── migrations/
+│
+├── venv/                       # Virtual environment (ignored)
+├── db.sqlite3                  # Local dev DB (ignored)
+├── .gitignore                  # Ignore rules
+├── requirements.txt            # Dependencies
+└── manage.py
+```
 
 ---
 
-## 🖥️ Frontend Testing
+# 🔗 Connecting With Frontend
 
-Use the sample `test-front.html` file.
-From your frontend, call:
+Your React frontend can access backend data directly using:
 
-```http
-http://127.0.0.1:8000/api/students/
 ```
+http://127.0.0.1:8000/api/
+```
+
+Make sure **CORS is enabled** in your Django settings (already configured in this repo).
 
 ---
