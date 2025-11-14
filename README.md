@@ -38,11 +38,12 @@ Follow these steps to set up the backend locally in a clean, professional workfl
 ---
 
 ## 1️⃣ Clone the Project
-
+clone the whole repo first then move to the ```local-testing``` branch
 ```bash
 git clone <repo-url> attendease-backend
 cd attendease-backend
 ```
+then move to ```attendease_backend2``` folder
 
 ---
 
