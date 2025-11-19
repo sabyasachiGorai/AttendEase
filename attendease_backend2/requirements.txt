@@ -1,6 +1,11 @@
 asgiref==3.10.0
 Django==5.2.8
+django-dotenv==1.4.2
 djangorestframework==3.16.1
+djangorestframework_simplejwt==5.5.1
+psycopg2==2.9.11
+psycopg2-binary==2.9.11
+PyJWT==2.10.1
 mysqlclient==2.2.7
 sqlparse==0.5.3
 tzdata==2025.2
