@@ -1,12 +1,16 @@
-from django.urls import path, include
-from . import views
+
+from django.urls import path
+from .views import (userRegistrationView, userLoginView, UserProfileView, changeUserPasswordView
+                    , userPasswordResetEmailView, userPasswordResetView, StudentRegistrationView)
 
 urlpatterns = [
-    path('register/', views.UserRegistrationView.as_view(), name='register'),
-    path('login/', views.UserLoginView.as_view(), name='login'),
-    path('profile/', views.UserProfileView.as_view(), name='profile'),
-    path('changepassword/', views.UserChangePasswordView.as_view(), name='changepassword'),
+    path('register/', userRegistrationView.as_view(), name='user-registration'),
+    path('studentRegistration/', StudentRegistrationView.as_view(), name='student-registration'),
+    path('login/', userLoginView.as_view(), name='user-login'),
+    path('profile/', UserProfileView.as_view(), name='user-profile'),
+    path('changeUserPassword/', changeUserPasswordView.as_view(), name='changeUser-Password'),
+    path('send-password-reset-email/', userPasswordResetEmailView.as_view(), name='send-password-reset-email'),
+    path('reset/<uid>/<token>/', userPasswordResetView.as_view(), name='password-reset'),
 
-    path('send-reset-password-email/', views.SendPasswordResetEmailView.as_view(), name='send-reset-password-email'),
-    path('reset-password/<uid>/<token>', views.UserPasswordResetView.as_view(), name='reset-password'),
+    
 ]

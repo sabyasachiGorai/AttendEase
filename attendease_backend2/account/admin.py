@@ -1,35 +1,33 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User
-from django.contrib.auth.admin import UserAdmin
-
-class UserModelAdmin(UserAdmin):
-
-    # The fields to be used in displaying the User model.
-    # These override the definitions on the base UserModelAdmin
-    # that reference specific fields on auth.User.
-    list_display = ["id" ,"email", "name", "tc", "is_admin"]
-    list_filter = ["is_admin"]
-    fieldsets = [
-        ("User Credentials", {"fields": ["email", "password"]}),
-        ("Personal info", {"fields": ["name", "tc"]}),
-        ("Permissions", {"fields": ["is_admin"]}),
-    ]
-    # add_fieldsets is not a standard ModelAdmin attribute. UserAdmin
-    # overrides get_fieldsets to use this attribute when creating a user.
-    add_fieldsets = [
-        (
-            None,
-            {
-                "classes": ["wide"],
-                "fields": ["email", "name", "tc" , "password1", "password2"],
-            },
-        ),
-    ]
-    search_fields = ["email"]
-    ordering = ["email", "id"]
-    filter_horizontal = []
 
 
-# Now register the new UserAdmin...
-admin.site.register(User, UserModelAdmin)
+class UserAdmin(BaseUserAdmin):
 
+    # What to show in the admin list page
+    list_display = ('id', 'email', 'name', 'role', 'created_at')
+    list_filter = ('role',)
+
+    readonly_fields = ('created_at', 'updated_at', 'last_login')
+
+    fieldsets = (
+        ('Login Credentials', {'fields': ('email', 'password')}),
+        ('Personal Info', {'fields': ('name', 'role')}),
+        ('Status', {'fields': ('is_active', 'is_staff', 'is_superuser')}),
+        ('Important Dates', {'fields': ('last_login', 'created_at', 'updated_at')}),
+    )
+
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'name', 'role', 'password1', 'password2'),
+        }),
+    )
+
+    search_fields = ('email', 'name')
+    ordering = ('id',)
+    filter_horizontal = ()  # Removed groups and permissions
+
+
+admin.site.register(User, UserAdmin)
