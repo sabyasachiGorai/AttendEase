@@ -1,29 +1,34 @@
 from django.contrib import admin
 from .models import (
-    Department, Course, AcademicYear, Semester,
-    Subject, CourseSubject, Teacher, TeacherSubject,
-    Student, StudentSubjectEnrollment, Attendance
+    Department,
+    Course,
+    Subject,
+    CourseSubject,
+    Teacher,
+    TeacherSubject,
+    Student,
+    StudentSubjectEnrollment,
+    Attendance
 )
 
+# Register simple models
 admin.site.register(Department)
 admin.site.register(Course)
-admin.site.register(AcademicYear)
-# admin.site.register(Semester)
 admin.site.register(Subject)
 admin.site.register(CourseSubject)
 admin.site.register(Teacher)
 admin.site.register(TeacherSubject)
-# admin.site.register(Student)
 admin.site.register(StudentSubjectEnrollment)
 admin.site.register(Attendance)
 
 
-
-
+# -------------------------
+# Student Admin (Customized)
+# -------------------------
 class StudentAdmin(admin.ModelAdmin):
     list_display = (
         "id",
-        "user_name",          # <-- shows student's user name
+        "user_name",        
         "roll_number",
         "course",
         "current_semester",
@@ -31,8 +36,8 @@ class StudentAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        "User__email",
-        "User__name",
+        "user__email",
+        "user__name",
         "roll_number",
         "phone_number",
     )
@@ -45,12 +50,12 @@ class StudentAdmin(admin.ModelAdmin):
 
     ordering = ("id",)
 
+    # Corrected function
     def user_name(self, obj):
-        return obj.User.name   # Access the name field from related User
+        return obj.user.name
 
     user_name.short_description = "Student Name"
 
-    # Optional: show dropdown search instead of huge list
-    # autocomplete_fields = ("User", "course", "current_semester")
 
+# Register Student using the custom admin
 admin.site.register(Student, StudentAdmin)
