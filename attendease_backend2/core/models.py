@@ -1,5 +1,5 @@
 from django.db import models
-from account.models import User
+from django.conf import settings
 
 
 # -------------------------
@@ -55,8 +55,14 @@ class CourseSubject(models.Model):
 # Teacher
 # -------------------------
 class Teacher(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='teacher_profile',
-                                null=True, blank=True)
+    # FIXED → use settings.AUTH_USER_MODEL
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='teacher_profile',
+        null=True,
+        blank=True
+    )
     employee_code = models.CharField(max_length=50, unique=True, null=True, blank=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='teachers')
@@ -88,7 +94,12 @@ class TeacherSubject(models.Model):
 # Student
 # -------------------------
 class Student(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile')
+    # FIXED → use settings.AUTH_USER_MODEL
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='student_profile'
+    )
     roll_number = models.CharField(max_length=50, unique=True)
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='students')
@@ -129,8 +140,13 @@ class Attendance(models.Model):
     ts = models.ForeignKey(TeacherSubject, on_delete=models.CASCADE, related_name='attendance_records')
     attendance_date = models.DateField()
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
-    created_by = models.ForeignKey(Teacher, on_delete=models.SET_NULL, null=True, blank=True,
-                                   related_name='marked_attendance')
+    created_by = models.ForeignKey(
+        Teacher,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='marked_attendance'
+    )
 
     class Meta:
         unique_together = ('student', 'ts', 'attendance_date')
