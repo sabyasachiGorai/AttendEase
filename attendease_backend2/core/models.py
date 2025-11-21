@@ -28,34 +28,36 @@ class Course(models.Model):
 # AcademicYear (NEW)
 # -------------------------
 class AcademicYear(models.Model):
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='academic_years')
-    year_number = models.IntegerField()  # 1, 2, ...
+    year_number = models.IntegerField()  # 1, 2, 3, 4 etc.
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
     class Meta:
-        unique_together = ('course', 'year_number')
+        ordering = ['year_number']
 
     def __str__(self):
-        return f"{self.course.course_name} - Year {self.year_number}"
+        return f"Year {self.year_number}"
+
 
 
 # -------------------------
 # Semester (NEW)
 # -------------------------
-class Semester(models.Model):
-    academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='semesters')
-    semester_number = models.IntegerField()  # 1 or 2 within that academic year
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
-    is_active = models.BooleanField(default=False)
 
-    class Meta:
-        unique_together = ('academic_year', 'semester_number')
+# class Semester(models.Model):
+#     academic_year = models.ForeignKey(AcademicYear, on_delete=models.CASCADE, related_name='semesters')
+#     semester_number = models.IntegerField()  # 1 or 2 within that academic year
+#     start_date = models.DateField(null=True, blank=True)
+#     end_date = models.DateField(null=True, blank=True)
+#     is_active = models.BooleanField(default=False)
 
-    def __str__(self):
-        global_index = (self.academic_year.year_number - 1) * 2 + self.semester_number
-        return f"{self.academic_year.course.course_name} - Sem {global_index} (Y{self.academic_year.year_number}S{self.semester_number})"
+#     class Meta:
+#         unique_together = ('academic_year', 'semester_number')
+
+#     def __str__(self):
+#         global_index = (self.academic_year.year_number - 1) * 2 + self.semester_number
+#         return f"{self.academic_year.course.course_name} - Sem {global_index} (Y{self.academic_year.year_number}S{self.semester_number})"
+
 
 
 # -------------------------
@@ -66,8 +68,8 @@ class Subject(models.Model):
     subject_name = models.CharField(max_length=100)
     credits = models.IntegerField(default=3)
     # link subject to specific Semester
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='subjects', null=True, blank=True)
-
+    # semester = models.ForeignKey(Semester, on_delete=models.CASCADE, related_name='subjects', null=True, blank=True)
+    current_semester = models.IntegerField(null=True, blank=True)
     def __str__(self):
         return f"{self.subject_name} ({self.subject_code})"
 
@@ -129,7 +131,8 @@ class Student(models.Model):
     phone_number = models.CharField(max_length=20, null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='students')
     # now link student to a Semester
-    current_semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    # current_semester = models.ForeignKey(Semester, on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
+    current_semester = models.IntegerField(null=True, blank=True)
     year_of_study = models.IntegerField(null=True, blank=True)
 
     # def __str__(self):
@@ -142,7 +145,8 @@ class Student(models.Model):
 class StudentSubjectEnrollment(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='enrollments')
-    semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, blank=True, related_name='enrollments')
+    # semester = models.ForeignKey(Semester, on_delete=models.CASCADE, null=True, blank=True, related_name='enrollments')
+    current_semester = models.IntegerField(null=True, blank=True)
     enrollment_date = models.DateField(auto_now_add=True)
 
     class Meta:
