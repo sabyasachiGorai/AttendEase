@@ -2,7 +2,7 @@
 from django.urls import path
 from .views import (userRegistrationView, userLoginView, UserProfileView, changeUserPasswordView,
                     userPasswordResetEmailView, userPasswordResetView, StudentRegistrationView,
-                    teacherRegistrationView)
+                    teacherRegistrationView, TeacherProfileView, StudentProfileView)
 
 urlpatterns = [
     path('register/', userRegistrationView.as_view(), name='user-registration'),
@@ -14,5 +14,7 @@ urlpatterns = [
 
     path('studentRegistration/', StudentRegistrationView.as_view(), name='student-registration'),
     path('teacherRegistration/', teacherRegistrationView.as_view(), name='teacher-registration'),
+    path('teacherProfile/', TeacherProfileView.as_view(), name='teacher-profile'),
+    path('studentProfile/', StudentProfileView.as_view(), name='student-profile'),
     
 ]

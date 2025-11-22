@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'core',
     'account',
     'rest_framework_simplejwt',
+    'corsheaders',
 ]
 
 #! JWT Configuration
@@ -53,6 +54,7 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -177,3 +179,6 @@ SIMPLE_JWT = {
     'JTI_CLAIM': 'jti',
 
 }
+
+
+CORS_ALLOW_ALL_ORIGINS = True   # allow all domains

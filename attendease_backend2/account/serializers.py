@@ -246,16 +246,6 @@ class teacherRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError({"error": str(e)})
 
 
-
-
-
-
-
-
-
-
-
-
 class userLoginSerializer(serializers.Serializer):
     email = serializers.EmailField(write_only=True,required=True)
     password = serializers.CharField(write_only=True,style={'input_type': 'password'},required=True)
@@ -270,6 +260,29 @@ class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'name', 'role']
+
+#?: feaching all the details of the logged-in Teacher
+class TeacherProfileSerializer(serializers.ModelSerializer):
+
+    user = UserProfileSerializer(read_only=True)
+
+    class Meta:
+        model = Teacher
+        fields = ['user', 'employee_code', 'phone_number', 'department', 'designation', 'joining_date']
+
+# ?: feaching all the details of the logged-in Student 
+class StudentProfileSerializer(serializers.ModelSerializer):
+
+    user = UserProfileSerializer(read_only=True)
+    course_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Student
+        fields = ['user', 'roll_number', 'phone_number', 'course_name', 'current_semester', 'year_of_study']
+
+    def get_course_name(self, obj):
+        return obj.course.course_name
+
 
 class changeUserPasswordSerializer(serializers.Serializer):
 

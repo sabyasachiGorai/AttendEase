@@ -2,13 +2,15 @@ from rest_framework.views import APIView
 from .renderers import UserRenderer
 from rest_framework.response import Response
 from rest_framework import status
+from core.models import Teacher, Student
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (userRegistrationSerializer, userLoginSerializer, UserProfileSerializer,
                             changeUserPasswordSerializer, userPasswordResetEmailSerializer,
                             UserPasswordResetSerializer, StudentRegistrationSerializer,
-                            teacherRegistrationSerializer)
+                            teacherRegistrationSerializer, TeacherProfileSerializer,
+                            StudentProfileSerializer)
 # Create your views here.
 
 #! Generate Token Manually
@@ -35,11 +37,6 @@ class userRegistrationView(APIView):
 class  StudentRegistrationView(APIView):
 
     renderer_classes = [UserRenderer]
-
-    # def get(self, request):
-    #     return Response({"message": "Send a POST request to register a student"})
-
-
 
     def post(self, request):
         serializer = StudentRegistrationSerializer(data=request.data)
@@ -91,6 +88,30 @@ class UserProfileView(APIView):
         serializer = UserProfileSerializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
+class TeacherProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [UserRenderer]
+
+    def get(self, request):
+
+        # use select_related to avoid extra queries
+        teacher = Teacher.objects.select_related("user", "department").get(user=request.user)
+        serializer = TeacherProfileSerializer(teacher)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class StudentProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [UserRenderer]
+
+    def get(self, request):
+
+        # use select_related to avoid extra queries
+        student = Student.objects.select_related("user").get(user=request.user)
+        serializer = StudentProfileSerializer(student)
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 class changeUserPasswordView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]
