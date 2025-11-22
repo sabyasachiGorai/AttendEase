@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from account.models import User
 # from core.models import Student, Course, Semester
-from core.models import Student, Course
+from core.models import Student, Course, Teacher
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.db import transaction
 # from account.utils import Util
 
 
@@ -48,7 +49,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
     roll_number = serializers.CharField()
     phone_number = serializers.CharField(required=False)
     course_id = serializers.IntegerField()
-    current_semester_id = serializers.IntegerField(required=False, allow_null=True)
+    current_semester = serializers.IntegerField(required=False, allow_null=True)
     year_of_study = serializers.IntegerField(required=False)
 
     # ---------------------------
@@ -79,6 +80,12 @@ class StudentRegistrationSerializer(serializers.Serializer):
                 {"role": "The role you entered is invalid for student registration."}
             )
 
+        if attrs.get('role').lower() != 'student':
+            raise serializers.ValidationError(
+                {"role": "The role you entered is invalid for student registration."}
+            )
+
+
         # Passwords must match
         if password != password2:
             raise serializers.ValidationError(
@@ -90,9 +97,9 @@ class StudentRegistrationSerializer(serializers.Serializer):
             raise serializers.ValidationError({"course_id": "Invalid course id."})
 
         # Check if semester exists (if provided)
-        sem_id = attrs.get('current_semester_id')
-        if sem_id is not None and not Semester.objects.filter(id=sem_id).exists():
-            raise serializers.ValidationError({"current_semester_id": "Invalid semester id."})
+        # sem_id = attrs.get('current_semester_id')
+        # if sem_id is not None and not Semester.objects.filter(id=sem_id).exists():
+        #     raise serializers.ValidationError({"current_semester_id": "Invalid semester id."})
 
         return attrs
 
@@ -107,28 +114,136 @@ class StudentRegistrationSerializer(serializers.Serializer):
         roll_number = validated_data.pop('roll_number')
         phone_number = validated_data.pop('phone_number', None)
         course_id = validated_data.pop('course_id')
-        current_semester_id = validated_data.pop('current_semester_id', None)
+        current_semester = validated_data.pop('current_semester', None)
         year_of_study = validated_data.pop('year_of_study', None)
 
-        # Create User
-        user = User.objects.create_user(
-            email=validated_data['email'],
-            name=validated_data['name'],
-            role=validated_data['role'],
-            password=validated_data['password']
-        )
+        try:
+            with transaction.atomic():
 
-        # Create Student
-        student = Student.objects.create(
-            User=user,
-            roll_number=roll_number,
-            phone_number=phone_number,
-            course_id=course_id,
-            current_semester_id=current_semester_id,
-            year_of_study=year_of_study
-        )
+                # Create User
+                user = User.objects.create_user(
+                    email=validated_data['email'],
+                    name=validated_data['name'],
+                    role=validated_data['role'],
+                    password=validated_data['password']
+                )
 
-        return student
+                # Create Student
+                student = Student.objects.create(
+                    user=user,
+                    roll_number=roll_number,
+                    phone_number=phone_number,
+                    course_id=course_id,
+                    current_semester=current_semester,
+                    year_of_study=year_of_study
+                )
+
+                return student
+
+        except Exception as e:
+            # Optional: Raise a custom error
+            raise serializers.ValidationError({"error": str(e)})
+
+
+class teacherRegistrationSerializer(serializers.Serializer):
+   # User fields
+    email = serializers.EmailField()
+    name = serializers.CharField()
+    role = serializers.CharField(default='teacher')
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
+
+    # Student fields
+    employee_code = serializers.CharField()
+    phone_number = serializers.IntegerField(required=False)
+    department = serializers.IntegerField()
+    designation = serializers.CharField(required=False, allow_null=True)
+    joining_date = serializers.DateField(required=False)
+
+    # ---------------------------
+    # FIELD-LEVEL VALIDATIONS
+    # ---------------------------
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already registered.")
+        return value
+
+    def validate_employee_code(self, value):
+        if Teacher.objects.filter(employee_code=value).exists():
+            raise serializers.ValidationError("This Employee Code is already taken.")
+        return value
+
+    # ---------------------------
+    # GLOBAL VALIDATION (your logic added here)
+    # ---------------------------
+    def validate(self, attrs):
+
+        password = attrs.get('password')
+        password2 = attrs.get('password2')
+
+        # Check Role
+        if attrs.get('role').lower() == 'admin':
+            raise serializers.ValidationError(
+                {"role": "The role you entered is invalid for teacher registration."}
+            )
+
+        if attrs.get('role').lower() != 'teacher':
+            raise serializers.ValidationError(
+                {"role": "The role you entered is invalid for teacher registration."}
+            )
+
+
+        # Passwords must match
+        if password != password2:
+            raise serializers.ValidationError(
+                {"password": "Passwords do not match."}
+            )
+
+        return attrs
+
+    # ---------------------------
+    # CREATE METHOD
+    # ---------------------------
+    def create(self, validated_data):
+
+        # Remove password2 before saving
+        validated_data.pop('password2')
+
+        # Extract Teacher fields
+
+        employee_code = validated_data.pop('employee_code')
+        phone_number = validated_data.pop('phone_number', None)
+        department_id = validated_data.pop('department')
+        designation = validated_data.pop('designation', None)
+        joining_date = validated_data.pop('joining_date', None)
+
+        try:
+            with transaction.atomic():
+
+                # Create User
+                user = User.objects.create_user(
+                    email=validated_data['email'],
+                    name=validated_data['name'],
+                    role=validated_data['role'],
+                    password=validated_data['password']
+                )
+
+                # Create Student
+                teacher = Teacher.objects.create(
+                    user=user,
+                    employee_code=employee_code,
+                    phone_number=phone_number,
+                    department_id=department_id,
+                    designation=designation,
+                    joining_date=joining_date
+                )
+
+                return teacher
+
+        except Exception as e:
+            # Optional: Raise a custom error
+            raise serializers.ValidationError({"error": str(e)})
 
 
 

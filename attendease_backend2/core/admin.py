@@ -16,7 +16,7 @@ admin.site.register(Department)
 admin.site.register(Course)
 admin.site.register(Subject)
 admin.site.register(CourseSubject)
-admin.site.register(Teacher)
+# admin.site.register(Teacher)
 admin.site.register(TeacherSubject)
 admin.site.register(StudentSubjectEnrollment)
 admin.site.register(Attendance)
@@ -59,3 +59,41 @@ class StudentAdmin(admin.ModelAdmin):
 
 # Register Student using the custom admin
 admin.site.register(Student, StudentAdmin)
+
+
+# -------------------------
+# Student Admin (Customized)
+# -------------------------
+class TeacherAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user_name",        
+        "employee_code",
+        "department",
+        "designation",
+    )
+
+    search_fields = (
+        "user__email",
+        "user__name",
+        "employee_code",
+        "phone_number",
+    )
+
+    list_filter = (
+        "department",
+        "designation",
+        "status",
+    )
+
+    ordering = ("id",)
+
+    # Corrected function
+    def user_name(self, obj):
+        return obj.user.name
+
+    user_name.short_description = "Teacher Name"
+
+
+# Register Student using the custom admin
+admin.site.register(Teacher, TeacherAdmin)

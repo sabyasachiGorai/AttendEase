@@ -6,8 +6,9 @@ from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (userRegistrationSerializer, userLoginSerializer, UserProfileSerializer,
-                          changeUserPasswordSerializer, userPasswordResetEmailSerializer,
-                        UserPasswordResetSerializer, StudentRegistrationSerializer)
+                            changeUserPasswordSerializer, userPasswordResetEmailSerializer,
+                            UserPasswordResetSerializer, StudentRegistrationSerializer,
+                            teacherRegistrationSerializer)
 # Create your views here.
 
 #! Generate Token Manually
@@ -32,6 +33,7 @@ class userRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
 
 class  StudentRegistrationView(APIView):
+
     renderer_classes = [UserRenderer]
 
     # def get(self, request):
@@ -44,11 +46,22 @@ class  StudentRegistrationView(APIView):
 
         if serializer.is_valid():
            student = serializer.save()
-           token = get_tokens_for_user(student.User)
+           token = get_tokens_for_user(student.user)
            return Response({'Msg':'The Student Registration is Successfull', 'token':token}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class teacherRegistrationView(APIView):
+    renderer_classes = [UserRenderer]
+
+    def post(self, request):
+        serializer = teacherRegistrationSerializer(data=request.data)
+
+        if serializer.is_valid():
+           teacher = serializer.save()
+           token = get_tokens_for_user(teacher.user)
+           return Response({'Msg':'The Teacher Registration is Successfull', 'token':token}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class userLoginView(APIView):
    renderer_classes = [UserRenderer]
