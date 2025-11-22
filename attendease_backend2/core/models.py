@@ -79,8 +79,11 @@ class Teacher(models.Model):
 class TeacherSubject(models.Model):
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='teacher_subjects')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='teacher_subjects')
-    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='teacher_subjects',
-                               null=True, blank=True)
+    course = models.ForeignKey(
+    Course,
+    on_delete=models.CASCADE,
+    related_name='teacher_subjects'
+    )
 
     class Meta:
         unique_together = ('teacher', 'subject', 'course')

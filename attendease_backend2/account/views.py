@@ -44,7 +44,13 @@ class  StudentRegistrationView(APIView):
         if serializer.is_valid():
            student = serializer.save()
            token = get_tokens_for_user(student.user)
-           return Response({'Msg':'The Student Registration is Successfull', 'token':token}, status=status.HTTP_201_CREATED)
+           return Response({
+            'Msg': 'The Student Registration is Successful',
+            'student_id': student.id,         # FIXED
+            'user_id': student.user.id,
+            'token': token
+          }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -57,7 +63,13 @@ class teacherRegistrationView(APIView):
         if serializer.is_valid():
            teacher = serializer.save()
            token = get_tokens_for_user(teacher.user)
-           return Response({'Msg':'The Teacher Registration is Successfull', 'token':token}, status=status.HTTP_201_CREATED)
+           return Response({
+                'Msg': 'The Teacher Registration is Successful',
+                'teacher_id': teacher.id,       # FIXED
+                'user_id': teacher.user.id,
+                'token': token
+            }, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class userLoginView(APIView):

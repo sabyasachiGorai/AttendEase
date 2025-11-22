@@ -52,6 +52,7 @@ class CourseSubjectSerializer(serializers.ModelSerializer):
 # Teacher
 # -------------------------
 class TeacherSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXED
     department = DepartmentSerializer(read_only=True)
     department_id = serializers.PrimaryKeyRelatedField(
         queryset=Department.objects.all(),
@@ -77,12 +78,14 @@ class TeacherSubjectSerializer(serializers.ModelSerializer):
 # Student
 # -------------------------
 class StudentSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True)   # FIXED
     course = CourseSerializer(read_only=True)
     course_id = serializers.PrimaryKeyRelatedField(
         queryset=Course.objects.all(),
         write_only=True,
         source='course'
     )
+
 
     class Meta:
         model = Student
