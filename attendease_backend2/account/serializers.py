@@ -265,10 +265,13 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class TeacherProfileSerializer(serializers.ModelSerializer):
 
     user = UserProfileSerializer(read_only=True)
-
+    dept_name = serializers.SerializerMethodField()
     class Meta:
         model = Teacher
-        fields = ['user', 'employee_code', 'phone_number', 'department', 'designation', 'joining_date']
+        fields = ['user', 'employee_code', 'phone_number', 'dept_name', 'designation', 'joining_date']
+
+    def get_dept_name(self, obj):
+        return obj.department.dept_name
 
 # ?: feaching all the details of the logged-in Student 
 class StudentProfileSerializer(serializers.ModelSerializer):
