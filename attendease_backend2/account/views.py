@@ -53,7 +53,6 @@ class  StudentRegistrationView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
 class teacherRegistrationView(APIView):
     renderer_classes = [UserRenderer]
 
@@ -72,6 +71,7 @@ class teacherRegistrationView(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+#! User Login View
 class userLoginView(APIView):
    renderer_classes = [UserRenderer]
 
@@ -85,13 +85,45 @@ class userLoginView(APIView):
 
             user = authenticate(email=email, password=password)
             if user is not None:
+                role = user.role
+                student_or_teacher_id = None
+                context = {}
+                if role == 'teacher':
+                    try:
+                        teacher = Teacher.objects.get(user=user)
+                        student_or_teacher_id = teacher.id
+                        context = {'role': 'teacher', 'id': student_or_teacher_id}
+                    except Teacher.DoesNotExist:
+                        return Response({'errors':{'non_field_errors':['Teacher profile not found']}}, status=status.HTTP_404_NOT_FOUND)
+                elif role == 'student':
+                    try:
+                        student = Student.objects.get(user=user)
+                        student_or_teacher_id = student.id
+                        context = {'role': 'student', 'id': student_or_teacher_id}
+                    except Student.DoesNotExist:
+                        return Response({'errors':{'non_field_errors':['Student profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 token = get_tokens_for_user(user)
-                return Response({'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
+                
+                return Response({'user_id': user.id,'context': context ,'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
             else:
                 return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
         # Runs when serializer.is_valid() is false
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
    
+# ! User Logout View
+class userLogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    renderer_classes = [UserRenderer]
+
+    def post(self, request):
+        try:
+            refresh_token = request.data["refresh"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({'msg':'User Logged out Successfully', 'logout':True}, status=status.HTTP_205_RESET_CONTENT)
+        except Exception as e:
+            return Response({'errors':{'non_field_errors':['Invalid refresh token']}}, status=status.HTTP_400_BAD_REQUEST)
+
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]

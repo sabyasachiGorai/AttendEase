@@ -2,11 +2,12 @@
 from django.urls import path
 from .views import (userRegistrationView, userLoginView, UserProfileView, changeUserPasswordView,
                     userPasswordResetEmailView, userPasswordResetView, StudentRegistrationView,
-                    teacherRegistrationView, TeacherProfileView, StudentProfileView)
+                    teacherRegistrationView, TeacherProfileView, StudentProfileView, userLogoutView)
 
 urlpatterns = [
     path('register/', userRegistrationView.as_view(), name='user-registration'),
     path('login/', userLoginView.as_view(), name='user-login'),
+    path('logout/', userLogoutView.as_view(), name='user-logout'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('changeUserPassword/', changeUserPasswordView.as_view(), name='changeUser-Password'),
     path('send-password-reset-email/', userPasswordResetEmailView.as_view(), name='send-password-reset-email'),
