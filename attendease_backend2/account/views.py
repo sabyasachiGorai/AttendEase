@@ -163,6 +163,8 @@ class StudentProfileView(APIView):
         serializer = StudentProfileSerializer(student)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
+    
+
 class changeUserPasswordView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]

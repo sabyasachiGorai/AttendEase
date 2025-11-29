@@ -41,6 +41,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
     # User fields
     email = serializers.EmailField()
     name = serializers.CharField()
+    gender = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     role = serializers.CharField()
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
@@ -124,6 +125,7 @@ class StudentRegistrationSerializer(serializers.Serializer):
                 user = User.objects.create_user(
                     email=validated_data['email'],
                     name=validated_data['name'],
+                    gender=validated_data.get('gender'),
                     role=validated_data['role'],
                     password=validated_data['password']
                 )
@@ -149,6 +151,7 @@ class teacherRegistrationSerializer(serializers.Serializer):
    # User fields
     email = serializers.EmailField()
     name = serializers.CharField()
+    gender = serializers.CharField(required=False, allow_null=True, allow_blank=True)
     role = serializers.CharField(default='teacher')
     password = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
@@ -225,6 +228,7 @@ class teacherRegistrationSerializer(serializers.Serializer):
                 user = User.objects.create_user(
                     email=validated_data['email'],
                     name=validated_data['name'],
+                    gender=validated_data.get('gender'),
                     role=validated_data['role'],
                     password=validated_data['password']
                 )
@@ -259,7 +263,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['email', 'name', 'role']
+        fields = ['email', 'name', 'gender','role']
 
 #?: feaching all the details of the logged-in Teacher
 class TeacherProfileSerializer(serializers.ModelSerializer):

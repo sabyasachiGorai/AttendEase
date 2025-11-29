@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseU
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, role, password=None, **extra_fields):
+    def create_user(self, email, name, gender,role, password=None, **extra_fields):
         if not email:
             raise ValueError("Email is required")
         if not role:
@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
             raise ValueError("Only superusers can have role='admin'.")
 
         email = self.normalize_email(email)
-        user = self.model(email=email, name=name, role=role, **extra_fields)
+        user = self.model(email=email, name=name, gender=gender, role=role, **extra_fields)
         
         user.set_password(password)
         user.save(using=self._db)
@@ -39,8 +39,15 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('admin', 'Admin'),
     )
 
+    GENDER_CHOICES = (
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('other', 'Other'),
+    )
+
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
     is_active = models.BooleanField(default=True)
