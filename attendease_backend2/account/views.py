@@ -104,7 +104,7 @@ class userLoginView(APIView):
                         return Response({'errors':{'non_field_errors':['Student profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 token = get_tokens_for_user(user)
                 
-                return Response({'user_id': user.id,'context': context ,'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
+                return Response({'user_id': user.id,'user_name': user.name,'context': context ,'token':token, 'msg':'Login Success'}, status=status.HTTP_200_OK)
             else:
                 return Response({'errors':{'non_field_errors':['Email or Password is not Valid']}}, status=status.HTTP_404_NOT_FOUND)
         # Runs when serializer.is_valid() is false
