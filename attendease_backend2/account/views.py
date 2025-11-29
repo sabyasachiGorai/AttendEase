@@ -92,14 +92,16 @@ class userLoginView(APIView):
                     try:
                         teacher = Teacher.objects.get(user=user)
                         student_or_teacher_id = teacher.id
-                        context = {'role': 'teacher', 'id': student_or_teacher_id}
+                        empCode_RollNo = teacher.employee_code
+                        context = {'role': 'teacher', 'id': student_or_teacher_id, 'empCode_RollNo':empCode_RollNo}
                     except Teacher.DoesNotExist:
                         return Response({'errors':{'non_field_errors':['Teacher profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 elif role == 'student':
                     try:
                         student = Student.objects.get(user=user)
                         student_or_teacher_id = student.id
-                        context = {'role': 'student', 'id': student_or_teacher_id}
+                        empCode_RollNo = student.roll_number
+                        context = {'role': 'student', 'id': student_or_teacher_id, 'empCode_RollNo':empCode_RollNo }
                     except Student.DoesNotExist:
                         return Response({'errors':{'non_field_errors':['Student profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 token = get_tokens_for_user(user)
