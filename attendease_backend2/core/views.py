@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 from .models import (
     Department, Course, Subject, CourseSubject,
@@ -14,237 +15,273 @@ from .serializers import (
     StudentSerializer, StudentSubjectEnrollmentSerializer, AttendanceSerializer
 )
 
+from core.permissions import IsAdmin, IsTeacher, IsStudent
 
-# -----------------------------------------------------------
-# Department CRUD
-# -----------------------------------------------------------
+
+# ===========================================================
+# 1. DEPARTMENT CRUD  (Admin = full CRUD, Teacher/Student = Read)
+# ===========================================================
 class DepartmentViewSet(viewsets.ModelViewSet):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+        return [IsAuthenticated()]
 
 
-# -----------------------------------------------------------
-# Course CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 2. COURSE CRUD (Admin full CRUD, Teacher/Student read-only)
+# ===========================================================
 class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+        return [IsAuthenticated()]
 
 
-# -----------------------------------------------------------
-# Subject CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 3. SUBJECT CRUD (Admin full CRUD, Teacher/Student read-only)
+# ===========================================================
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+        return [IsAuthenticated()]
 
 
-# -----------------------------------------------------------
-# CourseSubject Mapping CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 4. COURSE-SUBJECT CRUD (Admin only)
+# ===========================================================
 class CourseSubjectViewSet(viewsets.ModelViewSet):
     queryset = CourseSubject.objects.all()
     serializer_class = CourseSubjectSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
 
 
-# -----------------------------------------------------------
-# Teacher CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 5. TEACHER VIEWSET
+# - Admin: full CRUD
+# - Teacher: can only see THEIR OWN profile
+# - Student: cannot access teachers
+# ===========================================================
 class TeacherViewSet(viewsets.ModelViewSet):
-    queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
+    permission_classes = [IsAuthenticated]
 
-    # --------------------------
-    # GET /api/teachers/subjectwise/?teacher_id=
-    # --------------------------
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == 'admin':
+            return Teacher.objects.all()
+
+        if user.role == 'teacher':
+            return Teacher.objects.filter(user=user)
+
+        return Teacher.objects.none()
+
+    def get_permissions(self):
+        user = self.request.user
+
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+
+        return [IsAuthenticated()]
+
     @action(detail=False, methods=['get'])
     def subjectwise(self, request):
-        teacher_id = request.query_params.get('teacher_id')
-        if not teacher_id:
-            return Response({"error": "teacher_id is required"}, status=400)
+        user = request.user
 
-        ts_list = TeacherSubject.objects.filter(teacher_id=teacher_id).select_related(
+        if user.role != 'teacher':
+            return Response({"error": "Only teachers allowed"}, status=403)
+
+        teacher = Teacher.objects.filter(user=user).first()
+
+        if not teacher:
+            return Response({"error": "Teacher profile not found"}, status=404)
+
+        ts_list = TeacherSubject.objects.filter(teacher=teacher).select_related(
             'subject', 'course', 'course__dept'
         )
 
-        if not ts_list.exists():
-            return Response({"message": "No subjects assigned"}, status=404)
-
         data = []
         for ts in ts_list:
-            subject = ts.subject
-            course = ts.course
-            dept = course.dept if course else None
-
             data.append({
-                "subject_id": subject.id,
-                "subject_code": subject.subject_code,
-                "subject_name": subject.subject_name,
-                "course": course.course_name if course else None,
-                "department": dept.dept_name if dept else None,
-                "semester": subject.current_semester
+                "subject_id": ts.subject.id,
+                "subject_code": ts.subject.subject_code,
+                "subject_name": ts.subject.subject_name,
+                "course": ts.course.course_name,
+                "department": ts.course.dept.dept_name,
+                "semester": ts.subject.current_semester
             })
 
         return Response(data)
 
 
-# -----------------------------------------------------------
-# TeacherSubject CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 6. TEACHER-SUBJECT CRUD (Admin only)
+# ===========================================================
 class TeacherSubjectViewSet(viewsets.ModelViewSet):
     queryset = TeacherSubject.objects.all()
     serializer_class = TeacherSubjectSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
 
 
-# -----------------------------------------------------------
-# Student CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 7. STUDENT VIEWSET
+# - Admin: full access
+# - Student: only themselves
+# - Teacher: only students enrolled in their subjects
+# ===========================================================
 class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
     serializer_class = StudentSerializer
+    permission_classes = [IsAuthenticated]
 
-    # --------------------------
-    # Filters applied to GET /api/students/
-    # --------------------------
     def get_queryset(self):
-        qs = super().get_queryset()
-        course_id = self.request.query_params.get('course_id')
-        semester = self.request.query_params.get('semester')
-        year = self.request.query_params.get('year')
+        user = self.request.user
 
-        if course_id:
-            qs = qs.filter(course_id=course_id)
-        if semester:
-            qs = qs.filter(current_semester=semester)
-        if year:
-            qs = qs.filter(year_of_study=year)
+        if user.role == 'admin':
+            return Student.objects.all()
 
-        return qs
+        if user.role == 'student':
+            return Student.objects.filter(user=user)
+
+        if user.role == 'teacher':
+            subjects = TeacherSubject.objects.filter(
+                teacher__user=user
+            ).values_list('subject_id', flat=True)
+
+            return Student.objects.filter(
+                enrollments__subject_id__in=subjects
+            ).distinct()
+
+        return Student.objects.none()
+
+    def get_permissions(self):
+        if self.request.method in ["POST", "PUT", "PATCH", "DELETE"]:
+            return [IsAdmin()]
+        return [IsAuthenticated()]
+
 
     # --------------------------
-    # GET /api/students/subjects_teachers/?student_id=
+    # student → view own subjects + teacher info
     # --------------------------
     @action(detail=False, methods=['get'])
     def subjects_teachers(self, request):
+        user = request.user
         student_id = request.query_params.get('student_id')
-        if not student_id:
-            return Response({"error": "student_id is required"}, status=400)
 
-        student = Student.objects.filter(id=student_id).select_related('course').first()
+        if user.role == 'student' and student_id and str(user.student_profile.id) != student_id:
+            return Response({"error": "Not allowed"}, status=403)
+
+        if user.role == 'teacher':
+            # teacher can only view if student is in their subject
+            pass  # (optional extended rule)
+
+        student = Student.objects.filter(id=student_id).first()
         if not student:
             return Response({"error": "Student not found"}, status=404)
 
-        enrollments = StudentSubjectEnrollment.objects.filter(student_id=student_id).select_related('subject')
+        enrollments = StudentSubjectEnrollment.objects.filter(student=student)
 
         data = []
         for enroll in enrollments:
             subject = enroll.subject
+            ts = TeacherSubject.objects.filter(
+                subject=subject,
+                course=student.course
+            ).first()
 
-            # find teacher for this (subject + student's course)
-            ts = TeacherSubject.objects.filter(subject=subject, course=student.course).select_related('teacher').first()
-
-            teacher_data = None
+            teacher_info = None
             if ts:
-                t = ts.teacher
-                teacher_data = {
-                    "id": t.id,
-                    "email": t.user.email if t.user else None,
-                    "department": t.department.dept_name
+                teacher_info = {
+                    "id": ts.teacher.id,
+                    "email": ts.teacher.user.email,
+                    "department": ts.teacher.department.dept_name
                 }
 
             data.append({
                 "subject_id": subject.id,
                 "subject_code": subject.subject_code,
                 "subject_name": subject.subject_name,
-                "teacher": teacher_data
+                "teacher": teacher_info
             })
 
-        return Response({
-            "student_id": student.id,
-            "roll_number": student.roll_number,
-            "current_semester": student.current_semester,
-            "subjects": data
-        })
-
-    # --------------------------
-    # GET /api/students/subjectwise/?subject_id=
-    # --------------------------
-    @action(detail=False, methods=['get'])
-    def subjectwise(self, request):
-        subject_id = request.query_params.get('subject_id')
-        if not subject_id:
-            return Response({"error": "subject_id is required"}, status=400)
-
-        enrolls = StudentSubjectEnrollment.objects.filter(subject_id=subject_id)
-        students = [e.student for e in enrolls]
-        serializer = self.get_serializer(students, many=True)
-        return Response(serializer.data)
-
-    # --------------------------
-    # GET /api/students/contact/?student_id=
-    # --------------------------
-    @action(detail=False, methods=['get'])
-    def contact(self, request):
-        student_id = request.query_params.get('student_id')
-        if not student_id:
-            return Response({"error": "student_id is required"}, status=400)
-
-        student = Student.objects.filter(id=student_id).select_related('course__dept', 'user').first()
-        if not student:
-            return Response({"error": "Student not found"}, status=404)
-
-        return Response({
-            "id": student.id,
-            "roll_number": student.roll_number,
-            "email": student.user.email if student.user else None,
-            "phone_number": student.phone_number,
-            "course": student.course.course_name,
-            "department": student.course.dept.dept_name,
-            "year_of_study": student.year_of_study,
-            "semester": student.current_semester
-        })
+        return Response(data)
 
 
-# -----------------------------------------------------------
-# StudentSubjectEnrollment CRUD
-# -----------------------------------------------------------
+# ===========================================================
+# 8. ENROLLMENT CRUD (Admin only)
+# ===========================================================
 class StudentSubjectEnrollmentViewSet(viewsets.ModelViewSet):
     queryset = StudentSubjectEnrollment.objects.all()
     serializer_class = StudentSubjectEnrollmentSerializer
+    permission_classes = [IsAuthenticated, IsAdmin]
 
 
-# -----------------------------------------------------------
-# Attendance CRUD + custom actions
-# -----------------------------------------------------------
+# ===========================================================
+# 9. ATTENDANCE VIEWSET
+# - Teacher: only their classes
+# - Student: only their attendance
+# - Admin: full access
+# ===========================================================
 class AttendanceViewSet(viewsets.ModelViewSet):
-    queryset = Attendance.objects.all()
     serializer_class = AttendanceSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == 'admin':
+            return Attendance.objects.all()
+
+        if user.role == 'student':
+            return Attendance.objects.filter(student__user=user)
+
+        if user.role == 'teacher':
+            teacher = Teacher.objects.filter(user=user).first()
+            return Attendance.objects.filter(ts__teacher=teacher)
+
+        return Attendance.objects.none()
 
     # --------------------------
-    # POST /api/attendance/mark/
+    # MARK ATTENDANCE (TEACHERS ONLY)
     # --------------------------
     @action(detail=False, methods=['post'])
     def mark(self, request):
+        user = request.user
+
+        if user.role != 'teacher':
+            return Response({"error": "Only teachers can mark attendance"}, status=403)
+
+        teacher = Teacher.objects.filter(user=user).first()
+
         ts_id = request.data.get('ts_id')
+        ts = TeacherSubject.objects.filter(id=ts_id, teacher=teacher).first()
+
+        if not ts:
+            return Response({"error": "You are not assigned to this class"}, status=403)
+
         date = request.data.get('attendance_date')
         present = request.data.get('present', [])
         absent = request.data.get('absent', [])
-        created_by = request.data.get('created_by')
-
-        if not ts_id or not date:
-            return Response({"error": "ts_id and attendance_date required"}, status=400)
-
-        ts = TeacherSubject.objects.filter(id=ts_id).first()
-        if not ts:
-            return Response({"error": "Invalid ts_id"}, status=400)
-
-        teacher = Teacher.objects.filter(id=created_by).first()
 
         for sid in present:
             Attendance.objects.update_or_create(
                 student_id=sid, ts=ts, attendance_date=date,
                 defaults={"status": "Present", "created_by": teacher}
             )
+
         for sid in absent:
             Attendance.objects.update_or_create(
                 student_id=sid, ts=ts, attendance_date=date,
@@ -253,145 +290,41 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
         return Response({"message": "Attendance updated"}, status=201)
 
-    # --------------------------
-    # Filters in list
-    # --------------------------
-    def get_queryset(self):
-        qs = super().get_queryset()
-        student = self.request.query_params.get("student_id")
-        ts = self.request.query_params.get("ts_id")
-        date = self.request.query_params.get("date")
 
-        if student:
-            qs = qs.filter(student_id=student)
-        if ts:
-            qs = qs.filter(ts_id=ts)
-        if date:
-            qs = qs.filter(attendance_date=date)
-        return qs
-
-    # --------------------------
-    # GET /api/attendance/subjectwise/
-    # --------------------------
-    @action(detail=False, methods=['get'])
-    def subjectwise(self, request):
-        subject_id = request.query_params.get('subject_id')
-        if not subject_id:
-            return Response({"error": "subject_id required"}, status=400)
-
-        enrolls = StudentSubjectEnrollment.objects.filter(subject_id=subject_id)
-
-        output = []
-        for e in enrolls:
-            student = e.student
-            records = Attendance.objects.filter(student=student, ts__subject_id=subject_id)
-            total = records.count()
-            attended = records.filter(status='Present').count()
-            percent = round((attended / total * 100), 2) if total else 0
-
-            output.append({
-                "student_id": student.id,
-                "roll_number": student.roll_number,
-                "total_classes": total,
-                "attended_classes": attended,
-                "percentage": percent
-            })
-
-        return Response(output)
-
-    # --------------------------
-    # GET /api/attendance/studentwise/
-    # --------------------------
-    @action(detail=False, methods=['get'])
-    def studentwise(self, request):
-        student_id = request.query_params.get('student_id')
-        if not student_id:
-            return Response({"error": "student_id required"}, status=400)
-
-        enrolls = StudentSubjectEnrollment.objects.filter(student_id=student_id)
-
-        output = []
-        for e in enrolls:
-            subject = e.subject
-            records = Attendance.objects.filter(student_id=student_id, ts__subject_id=subject.id)
-            total = records.count()
-            attended = records.filter(status='Present').count()
-            percent = round((attended / total * 100), 2) if total else 0
-
-            output.append({
-                "subject_id": subject.id,
-                "subject_code": subject.subject_code,
-                "subject_name": subject.subject_name,
-                "total_classes": total,
-                "attended_classes": attended,
-                "percentage": percent
-            })
-
-        return Response(output)
-
-    # --------------------------
-    # GET /api/attendance/datewise/
-    # --------------------------
-    @action(detail=False, methods=['get'])
-    def datewise(self, request):
-        subject_id = request.query_params.get('subject_id')
-        date = request.query_params.get('date')
-
-        if not subject_id or not date:
-            return Response({"error": "subject_id and date required"}, status=400)
-
-        enrolls = StudentSubjectEnrollment.objects.filter(subject_id=subject_id)
-        output = []
-
-        for e in enrolls:
-            student = e.student
-            record = Attendance.objects.filter(
-                student=student,
-                ts__subject_id=subject_id,
-                attendance_date=date
-            ).first()
-
-            output.append({
-                "student_id": student.id,
-                "roll_number": student.roll_number,
-                "status": record.status if record else "Not Marked"
-            })
-
-        return Response({
-            "subject_id": subject_id,
-            "date": date,
-            "records": output
-        })
-
-
-# -----------------------------------------------------------
-# GET /api/courses/<id>/subjects/?semester=<int>
-# -----------------------------------------------------------
+# ===========================================================
+# 10. COURSE SUBJECT LIST VIEW
+# ===========================================================
 class CourseSubjectsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, course_id):
         semester = request.query_params.get("semester")
-
-        # list all subjects mapped to this course
         qs = Subject.objects.filter(course_subjects__course_id=course_id)
 
-        # filter by integer semester
         if semester:
             qs = qs.filter(current_semester=semester)
 
-        serializer = SubjectSerializer(qs, many=True)
-        return Response(serializer.data)
+        return Response(SubjectSerializer(qs, many=True).data)
 
 
-# -----------------------------------------------------------
-# GET /api/teachers/<id>/students/
-# -----------------------------------------------------------
+# ===========================================================
+# 11. TEACHER STUDENTS VIEW
+# ===========================================================
 class TeacherStudentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, teacher_id):
-        # find all subjects taught by this teacher
-        subjects = TeacherSubject.objects.filter(teacher_id=teacher_id).values_list("subject_id", flat=True)
+        user = request.user
 
-        # all students enrolled in those subjects
-        students = Student.objects.filter(enrollments__subject_id__in=subjects).distinct()
+        if user.role != 'teacher' or user.teacher_profile.id != teacher_id:
+            return Response({"error": "Not allowed"}, status=403)
 
-        serializer = StudentSerializer(students, many=True)
-        return Response(serializer.data)
+        subjects = TeacherSubject.objects.filter(
+            teacher_id=teacher_id
+        ).values_list("subject_id", flat=True)
+
+        students = Student.objects.filter(
+            enrollments__subject_id__in=subjects
+        ).distinct()
+
+        return Response(StudentSerializer(students, many=True).data)
