@@ -28,9 +28,19 @@ SECRET_KEY = 'django-insecure-$@84t0x762$bhm(wh3w5brz7ra%-6&r83lla_1*1-i$*itypww
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'attendease-v1.up.railway.app',
+    'localhost',
+    'attendease.railway.internal',
 
-# ALLOWED_HOSTS = ['your-railway-domain.up.railway.app']
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://attendease-v1.up.railway.app',
+    'https://*.uprail.app',
+]
+
+
 
 # Application definition
 
