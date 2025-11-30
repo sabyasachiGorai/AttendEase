@@ -11,6 +11,8 @@ from .serializers import (userRegistrationSerializer, userLoginSerializer, UserP
                             UserPasswordResetSerializer, StudentRegistrationSerializer,
                             teacherRegistrationSerializer, TeacherProfileSerializer,
                             StudentProfileSerializer)
+from account.permissions import IsTeacher, IsStudent, IsAdmin
+
 # Create your views here.
 
 #! Generate Token Manually
@@ -142,33 +144,28 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class TeacherProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsTeacher]
     renderer_classes = [UserRenderer]
 
     def get(self, request):
-        
         try:
-            # use select_related to avoid extra queries
             teacher = Teacher.objects.select_related("user", "department").get(user=request.user)
         except Teacher.DoesNotExist:
             return Response({'error': 'Teacher profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-
 
         serializer = TeacherProfileSerializer(teacher)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class StudentProfileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsStudent]
     renderer_classes = [UserRenderer]
 
     def get(self, request):
-
         try:
-            # use select_related to avoid extra queries
             student = Student.objects.select_related("user").get(user=request.user)
         except Student.DoesNotExist:
             return Response({'error': 'Student profile not found.'}, status=status.HTTP_404_NOT_FOUND)
-        
+
         serializer = StudentProfileSerializer(student)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
