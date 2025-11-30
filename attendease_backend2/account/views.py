@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from core.models import Teacher, Student
 from django.contrib.auth import authenticate
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework.permissions import IsAuthenticated
 from .serializers import (userRegistrationSerializer, userLoginSerializer, UserProfileSerializer,
                             changeUserPasswordSerializer, userPasswordResetEmailSerializer,
@@ -20,6 +20,7 @@ def get_tokens_for_user(user):
       'refresh': str(refresh),
       'access': str(refresh.access_token),
   }
+
 
 
 class userRegistrationView(APIView):
@@ -93,7 +94,10 @@ class userLoginView(APIView):
                         teacher = Teacher.objects.get(user=user)
                         student_or_teacher_id = teacher.id
                         empCode_RollNo = teacher.employee_code
-                        context = {'role': 'teacher', 'id': student_or_teacher_id, 'empCode_RollNo':empCode_RollNo}
+                        context = {'role': 'teacher',
+                                    'id': student_or_teacher_id, 
+                                    'empCode_RollNo':empCode_RollNo
+                                    }
                     except Teacher.DoesNotExist:
                         return Response({'errors':{'non_field_errors':['Teacher profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 elif role == 'student':
@@ -101,7 +105,10 @@ class userLoginView(APIView):
                         student = Student.objects.get(user=user)
                         student_or_teacher_id = student.id
                         empCode_RollNo = student.roll_number
-                        context = {'role': 'student', 'id': student_or_teacher_id, 'empCode_RollNo':empCode_RollNo }
+                        context = {'role': 'student', 
+                                   'id': student_or_teacher_id, 
+                                   'empCode_RollNo':empCode_RollNo
+                                    }
                     except Student.DoesNotExist:
                         return Response({'errors':{'non_field_errors':['Student profile not found']}}, status=status.HTTP_404_NOT_FOUND)
                 token = get_tokens_for_user(user)

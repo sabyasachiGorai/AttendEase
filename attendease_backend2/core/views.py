@@ -2,6 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework_simplejwt.tokens import AccessToken
 
 from .models import (
     Department, Course, Subject, CourseSubject,
@@ -14,6 +15,10 @@ from .serializers import (
     StudentSerializer, StudentSubjectEnrollmentSerializer, AttendanceSerializer
 )
 
+# ! Utility function to extract user ID from JWT token
+def get_user_id_from_token(token):
+    access_token = AccessToken(token)
+    return access_token['user_id']
 
 # -----------------------------------------------------------
 # Department CRUD
