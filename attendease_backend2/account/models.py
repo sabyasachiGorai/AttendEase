@@ -27,7 +27,7 @@ class UserManager(BaseUserManager):
         return self.create_user(
         email=email,
         name=name,
-        gender = 'other',
+        gender = None,
         role="admin",   # superuser role fixed
         password=password,
         **extra_fields
