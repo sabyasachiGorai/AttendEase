@@ -34,9 +34,24 @@ class CourseSerializer(serializers.ModelSerializer):
 # Subject
 # -------------------------
 class SubjectSerializer(serializers.ModelSerializer):
+    teacher_name = serializers.SerializerMethodField()
+
     class Meta:
         model = Subject
-        fields = ['id', 'subject_code', 'subject_name', 'credits', 'current_semester']
+        fields = [
+            'id',
+            'subject_code',
+            'subject_name',
+            'credits',
+            'current_semester',
+            'teacher_name'
+        ]
+
+    def get_teacher_name(self, obj):
+        ts = obj.teacher_subjects.first()
+        if ts and ts.teacher and ts.teacher.user:
+            return ts.teacher.user.name
+        return None
 
 
 # -------------------------

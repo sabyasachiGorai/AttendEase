@@ -203,20 +203,46 @@ Response:
 
 ```json
 [
-  {
-    "id": 3,
-    "subject_name": "Data Structures",
-    "subject_code": "DSC102",
-    "current_semester": 1,
-    "credits": 4
-  },
-  {
-    "id": 5,
-    "subject_name": "OOP",
-    "subject_code": "OOP101",
-    "current_semester": 1,
-    "credits": 4
-  }
+    {
+        "id": 16,
+        "subject_code": "MCSC101",
+        "subject_name": "Design and Analysis of Algorithms",
+        "credits": 4,
+        "current_semester": 1,
+        "teacher_name": "Prof. Design"
+    },
+    {
+        "id": 17,
+        "subject_code": "MCSC102",
+        "subject_name": "Artificial Intelligence",
+        "credits": 4,
+        "current_semester": 1,
+        "teacher_name": "Prof. Artificial"
+    },
+    {
+        "id": 18,
+        "subject_code": "MCSC103",
+        "subject_name": "Information Security",
+        "credits": 4,
+        "current_semester": 1,
+        "teacher_name": "Prof. Information"
+    },
+    {
+        "id": 19,
+        "subject_code": "MCSC104",
+        "subject_name": "Mathematical Foundations of Computer Science",
+        "credits": 4,
+        "current_semester": 1,
+        "teacher_name": "Prof. Mathematical"
+    },
+    {
+        "id": 20,
+        "subject_code": "MCSC105",
+        "subject_name": "Data Mining",
+        "credits": 4,
+        "current_semester": 1,
+        "teacher_name": "Prof. Data"
+    }
 ]
 ```
 
