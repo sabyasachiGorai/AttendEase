@@ -14,12 +14,7 @@ from .models import (
 # Register simple models
 admin.site.register(Department)
 admin.site.register(Course)
-admin.site.register(Subject)
-admin.site.register(CourseSubject)
-# admin.site.register(Teacher)
-# admin.site.register(TeacherSubject)
-# admin.site.register(StudentSubjectEnrollment)
-# admin.site.register(Attendance)
+
 
 
 # -------------------------
@@ -55,7 +50,6 @@ class StudentAdmin(admin.ModelAdmin):
         return obj.user.name
 
     user_name.short_description = "Student Name"
-
 
 # Register Student using the custom admin
 admin.site.register(Student, StudentAdmin)
@@ -93,7 +87,6 @@ class TeacherAdmin(admin.ModelAdmin):
         return obj.user.name
 
     user_name.short_description = "Teacher Name"
-
 
 # Register Student using the custom admin
 admin.site.register(Teacher, TeacherAdmin)
@@ -227,7 +220,89 @@ class StudentSubjectEnrollmentAdmin(admin.ModelAdmin):
         return obj.subject.subject_name
     subject_name.short_description = "Subject"
 
-
 # Register StudentSubjectEnrollment in admin
 admin.site.register(StudentSubjectEnrollment, StudentSubjectEnrollmentAdmin)
+
+# -------------------------
+#Subject Admin (Customized)
+# -------------------------
+class SubjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "subject_code",
+        "subject_name",
+        "credits",
+        "current_semester",
+        "courses_list",
+    )
+
+    search_fields = (
+        "subject_code",
+        "subject_name",
+        "current_semester",
+        "course_subjects__course__course_name",
+    )
+
+    list_filter = (
+        "current_semester",
+        "credits",
+        "course_subjects__course__course_name",
+    )
+
+    ordering = ("id",)
+
+    # Custom Function: Show Course(s) that the Subject belongs to
+    def courses_list(self, obj):
+        courses = obj.course_subjects.values_list("course__course_name", flat=True)
+        return ", ".join(courses) if courses else "—"
+    courses_list.short_description = "Courses"
+
+# Register Subject model
+admin.site.register(Subject, SubjectAdmin)
+
+# -------------------------
+# Course-Subject Admin (Customized)
+# -------------------------
+class CourseSubjectAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "course_name",
+        "subject_name",
+        "assigned_teachers",
+    )
+
+    search_fields = (
+        "course__course_name",
+        "subject__subject_code",
+        "subject__subject_name",
+        "subject__teacher_subjects__teacher__user__name",
+    )
+
+    list_filter = (
+        "course__course_name",
+        "subject__subject_name",
+        "subject__teacher_subjects__teacher__user__name",
+    )
+
+    ordering = ("id",)
+
+    # ---- Custom Display Methods ----
+
+    def course_name(self, obj):
+        return obj.course.course_name
+    course_name.short_description = "Course"
+
+    def subject_name(self, obj):
+        return obj.subject.subject_name
+    subject_name.short_description = "Subject"
+
+    def assigned_teachers(self, obj):
+        teachers = obj.subject.teacher_subjects.values_list(
+            "teacher__user__name", flat=True
+        )
+        return ", ".join(teachers) if teachers else "—"
+    assigned_teachers.short_description = "Assigned Teacher(s)"
+
+
+admin.site.register(CourseSubject, CourseSubjectAdmin)
 
