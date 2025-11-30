@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin import DateFieldListFilter
 from .models import (
     Department,
     Course,
@@ -95,6 +96,22 @@ admin.site.register(Teacher, TeacherAdmin)
 # -------------------------
 # Attendance Admin (Customized)
 # -------------------------
+
+class SubjectFilter(admin.SimpleListFilter):
+    title = "Subject"
+    parameter_name = "subject"
+
+    def lookups(self, request, model_admin):
+        subjects = TeacherSubject.objects.values_list(
+            "subject_id", "subject__subject_name"
+        ).distinct()
+        return subjects
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(ts__subject_id=self.value())
+        return queryset
+
 class AttendanceAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -116,7 +133,8 @@ class AttendanceAdmin(admin.ModelAdmin):
     list_filter = (
         "status",
         "attendance_date",
-        "ts__subject__subject_name",
+        # "ts__subject__subject_name",
+        SubjectFilter,
     )
 
     ordering = ("attendance_date",)
