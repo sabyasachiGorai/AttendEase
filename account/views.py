@@ -187,6 +187,35 @@ class changeUserPasswordView(APIView):
             return Response({'Msg': 'Password Changed Successful'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+# class userPasswordResetEmailView(APIView):
+#     renderer_classes = [UserRenderer]
+
+#     def post(self, request):
+#         serializer = userPasswordResetEmailSerializer(data=request.data)
+#         if serializer.is_valid():
+#             user = serializer.validated_data['user']
+            
+#             # Generate Reset UID + Token
+#             uid = urlsafe_base64_encode(force_bytes(user.id))
+#             token = PasswordResetTokenGenerator().make_token(user)
+
+#             frontend_domain = os.environ.get('FRONTEND_URL')
+#             reset_link = f"{frontend_domain}/reset/{uid}/{token}"
+
+#             # Email Body
+#             body = f"Click the link below to reset your password:\n{reset_link}"
+#             # Prepare email object
+#             email_data = {
+#                 'subject': 'Reset Your Password',
+#                 'body': body,
+#                 # 'to_email': user.email
+#                 'to_email': 'mdamanansari702@gmail.com'
+#             }
+
+#         # Send email using your UTIL class
+#             Util.send_email(email_data)
+#             return Response({'Email': 'Password Reset Email Sent successfully!, Please Check your email.'},status=status.HTTP_200_OK)
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class userPasswordResetEmailView(APIView):
     renderer_classes = [UserRenderer]
 
@@ -208,13 +237,13 @@ class userPasswordResetEmailView(APIView):
             email_data = {
                 'subject': 'Reset Your Password',
                 'body': body,
-                # 'to_email': user.email
-                'to_email': 'mdamanansari702@gmail.com'
+                'to_email': user.email
             }
 
         # Send email using your UTIL class
-            Util.send_email(email_data)
-            return Response({'Email': 'Password Reset Email Sent successfully!, Please Check your email.'},status=status.HTTP_200_OK)
+            email_sent=Util.send_email(email_data)
+            if email_sent:
+                return Response({'Email': 'Password Reset Email Sent successfully!, Please Check your email.'},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class userPasswordResetView(APIView):
@@ -226,6 +255,69 @@ class userPasswordResetView(APIView):
             return Response({'Email': 'Password reset Successfull.'},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+# class send_attendance_warningView(APIView):
+#     permission_classes = [IsAuthenticated, IsTeacher]
+#     renderer_classes = [UserRenderer]
+
+#     def post(self, request):
+#         # Logic to send attendance email
+#         # This is a placeholder for the actual implementation
+#         serializer = AttendanceWarningSerializer(data=request.data)
+#         if serializer.is_valid():
+#             data = serializer.validated_data
+
+#             student_name = data["student_name"]
+#             student_email = data["email"]
+#             subject_name = data["subject_name"]
+#             attendance = data["attendance_percentage"]
+#             # course_name = data["course"]["course_name"]
+#             course = data.get("course", {})
+#             course_name = course.get("course_name", "")
+#             roll_number = data["roll_number"]
+
+#             # Email content
+#             subject = f"Attendance Shortage Alert – {subject_name}"
+#             email_body = f"""
+# <pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
+# Dear <strong>{ student_name }</strong>,
+
+# --------------------------------------------------
+# STUDENT DETAILS
+# --------------------------------------------------
+# Roll Number : <strong>{ roll_number }</strong>
+# Course      : <strong>{ course_name }</strong>
+# Subject     : <strong>{ subject_name }</strong>
+# --------------------------------------------------
+
+# This is to inform you that your attendance record has fallen below the required threshold.
+
+# Your attendance in "<strong>{ subject_name }</strong>" is <strong>{ attendance }%</strong>, which is below 75%.
+
+# Please take immediate steps to improve your attendance.
+
+# Regards,
+# <strong>Department of Computer Science</strong>
+# </pre>
+
+# """.strip()
+
+#             print(email_body)
+#             email_data = {
+#                 'subject': subject,
+#                 'body': email_body,
+#                 # 'to_email': student_email
+#                 'to_email': 'mdamanansari702@gmail.com'
+#                 }
+#             # Send email
+#             # Util.send_email(email_data)
+#             threading.Thread(target=Util.send_email, args=(email_data,)).start()
+
+#             return Response(
+#                 {"message": f"Email sent to {student_name} ({student_email})"},
+#                 status=status.HTTP_200_OK
+#             )
+#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class send_attendance_warningView(APIView):
     permission_classes = [IsAuthenticated, IsTeacher]
     renderer_classes = [UserRenderer]
@@ -241,9 +333,7 @@ class send_attendance_warningView(APIView):
             student_email = data["email"]
             subject_name = data["subject_name"]
             attendance = data["attendance_percentage"]
-            # course_name = data["course"]["course_name"]
-            course = data.get("course", {})
-            course_name = course.get("course_name", "")
+            course_name = data["course"]["course_name"]
             roll_number = data["roll_number"]
 
             # Email content
@@ -272,23 +362,24 @@ Regards,
 
 """.strip()
 
-            print(email_body)
-            email_data = {
-                'subject': subject,
-                'body': email_body,
-                # 'to_email': student_email
-                'to_email': 'mdamanansari702@gmail.com'
-                }
-            # Send email
-            # Util.send_email(email_data)
-            threading.Thread(target=Util.send_email, args=(email_data,)).start()
+            email_sent = Util.send_email({
+                "subject": subject,
+                "body": email_body,
+                # "to_email": student_email
+                "to_email": 'mdamanansari702@gmail.com'  # TESTING PURPOSES
+            })
 
+            if not email_sent:
+                return Response(
+                    {"error": "Failed to send email. Please try again later."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             return Response(
                 {"message": f"Email sent to {student_name} ({student_email})"},
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 class send_bulk_attendance_warningView(APIView):
     permission_classes = [IsAuthenticated, IsTeacher]
     renderer_classes = [UserRenderer]
