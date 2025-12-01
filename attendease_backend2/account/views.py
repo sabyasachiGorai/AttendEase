@@ -273,8 +273,7 @@ Regards,
             email_data = {
                 'subject': subject,
                 'body': email_body,
-                # 'to_email': student_email
-                'to_email': 'mdamanansari702@gmail.com'  # For testing purposes
+                'to_email': student_email
                 }
             # Send email
             Util.send_email(email_data)
@@ -342,8 +341,7 @@ Regards,
                     Util.send_email({
                         "subject": f"Attendance Warning – {subject_name}",
                         "body": email_body,
-                        # "to_email": student_email
-                        "to_email": "mdamanansari702@gmail.com"  # For testing purposes
+                        "to_email": student_email
                     })
                     successful_emails += 1
                 except:
