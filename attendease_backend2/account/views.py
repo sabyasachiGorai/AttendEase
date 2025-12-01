@@ -14,7 +14,10 @@ from .serializers import (userRegistrationSerializer, userLoginSerializer, UserP
 from account.permissions import IsTeacher, IsStudent, IsAdmin
 from django.conf import settings
 from account.utils import Util
-import textwrap
+import textwrap, os
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
 
 # Create your views here.
 
@@ -190,6 +193,26 @@ class userPasswordResetEmailView(APIView):
     def post(self, request):
         serializer = userPasswordResetEmailSerializer(data=request.data)
         if serializer.is_valid():
+            user = serializer.validated_data['user']
+            
+            # Generate Reset UID + Token
+            uid = urlsafe_base64_encode(force_bytes(user.id))
+            token = PasswordResetTokenGenerator().make_token(user)
+
+            frontend_domain = os.environ.get('FRONTEND_URL')
+            reset_link = f"{frontend_domain}/reset/{uid}/{token}"
+
+            # Email Body
+            body = f"Click the link below to reset your password:\n{reset_link}"
+            # Prepare email object
+            email_data = {
+                'subject': 'Reset Your Password',
+                'body': body,
+                'to_email': user.email
+            }
+
+        # Send email using your UTIL class
+            Util.send_email(email_data)
             return Response({'Email': 'Password Reset Email Sent successfully!, Please Check your email.'},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
