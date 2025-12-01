@@ -3,7 +3,7 @@ from django.urls import path
 from .views import (userRegistrationView, userLoginView, UserProfileView, changeUserPasswordView,
                     userPasswordResetEmailView, userPasswordResetView, StudentRegistrationView,
                     teacherRegistrationView, TeacherProfileView, StudentProfileView, userLogoutView,
-                    send_attendance_warningView)
+                    send_attendance_warningView, send_bulk_attendance_warningView)
 
 urlpatterns = [
     path('register/', userRegistrationView.as_view(), name='user-registration'),
@@ -21,5 +21,5 @@ urlpatterns = [
     
     # New URL pattern for sending attendance email
     path('send-attendance-warning/', send_attendance_warningView.as_view(), name='send-attendance-warning'),
-    # path('send-bulk-attendance-warning/', send_attendance_warningView.as_view(), name='send-bulk-attendance-warning'),
+    path('send-bulk-attendance-warning/', send_bulk_attendance_warningView.as_view(), name='send-bulk-attendance-warning'),
 ]

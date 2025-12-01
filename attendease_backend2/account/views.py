@@ -223,28 +223,28 @@ class send_attendance_warningView(APIView):
             # Email content
             subject = f"Attendance Shortage Alert – {subject_name}"
             email_body = f"""
-                                <pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
-                                Dear <strong>{ student_name }</strong>,
+<pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
+Dear <strong>{ student_name }</strong>,
 
-                                --------------------------------------------------
-                                STUDENT DETAILS
-                                --------------------------------------------------
-                                Roll Number : <strong>{ roll_number }</strong>
-                                Course      : <strong>{ course_name }</strong>
-                                Subject     : <strong>{ subject_name }</strong>
-                                --------------------------------------------------
+--------------------------------------------------
+STUDENT DETAILS
+--------------------------------------------------
+Roll Number : <strong>{ roll_number }</strong>
+Course      : <strong>{ course_name }</strong>
+Subject     : <strong>{ subject_name }</strong>
+--------------------------------------------------
 
-                                This is to inform you that your attendance record has fallen below the required threshold.
+This is to inform you that your attendance record has fallen below the required threshold.
 
-                                Your attendance in "<strong>{ subject_name }</strong>" is <strong>{ attendance }%</strong>, which is below 75%.
+Your attendance in "<strong>{ subject_name }</strong>" is <strong>{ attendance }%</strong>, which is below 75%.
 
-                                Please take immediate steps to improve your attendance.
+Please take immediate steps to improve your attendance.
 
-                                Regards,
-                                <strong>Department of Computer Science</strong>
-                                </pre>
+Regards,
+<strong>Department of Computer Science</strong>
+</pre>
 
-                        """.strip()
+""".strip()
 
             print(email_body)
             email_data = {
@@ -261,3 +261,75 @@ class send_attendance_warningView(APIView):
                 status=status.HTTP_200_OK
             )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class send_bulk_attendance_warningView(APIView):
+    permission_classes = [IsAuthenticated, IsTeacher]
+    renderer_classes = [UserRenderer]
+
+    def post(self, request):
+        
+        students = request.data
+        
+        if not isinstance(students, list):
+            return Response({'error': 'Invalid data format. Expected a list of students.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        successful_emails = 0
+        failed_emails = []
+
+        for student_data in students:
+            serializer = AttendanceWarningSerializer(data=student_data)
+
+            if serializer.is_valid():
+                data = serializer.validated_data
+
+                student_name = data["student_name"]
+                student_email = data["email"]
+                subject_name = data["subject_name"]
+                attendance = data["attendance_percentage"]
+                course_name = data["course"]["course_name"]
+                roll_number = data["roll_number"]
+
+                # Email content
+                subject = f"Attendance Shortage Alert – {subject_name}"
+                email_body = f"""
+<pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
+Dear <strong>{ student_name }</strong>,
+
+--------------------------------------------------
+STUDENT DETAILS
+--------------------------------------------------
+Roll Number : <strong>{ roll_number }</strong>
+Course      : <strong>{ course_name }</strong>
+Subject     : <strong>{ subject_name }</strong>
+--------------------------------------------------
+
+This is to inform you that your attendance record has fallen below the required threshold.
+
+Your attendance in "<strong>{ subject_name }</strong>" is <strong>{ attendance }%</strong>, which is below 75%.
+
+Please take immediate steps to improve your attendance.
+
+Regards,
+<strong>Department of Computer Science</strong>
+</pre>
+
+""".strip()
+
+                try:
+                    Util.send_email({
+                        "subject": f"Attendance Warning – {subject_name}",
+                        "body": email_body,
+                        # "to_email": student_email
+                        "to_email": "mdamanansari702@gmail.com"  # For testing purposes
+                    })
+                    successful_emails += 1
+                except:
+                    failed_emails.append(student_name)
+            else:
+                failed_emails.append(student_data.get("student_name"))
+
+        return Response({
+            "message": "Bulk email process completed",
+            "successful_emails": successful_emails,
+            "failed_emails": failed_emails
+        }, status=status.HTTP_200_OK)
