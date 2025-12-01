@@ -1,3 +1,15 @@
+"""
+Author: Sabyasachi Gorai
+Project: AttendEase – Smart Attendance Management System
+File: models.py
+Description:
+    This file contains all database models used in the system.
+    Django ORM (Object Relational Mapping) is used to convert Python classes
+    into database tables. Each model defines structure, relationships,
+    and constraints for the database.
+"""
+
+
 from django.db import models
 from django.conf import settings
 
@@ -5,6 +17,10 @@ from django.conf import settings
 # Department
 # -------------------------
 class Department(models.Model):
+    """
+    Represents an academic department (e.g., Computer Science).
+    One department can have multiple courses.
+    """
     dept_name = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
@@ -15,6 +31,11 @@ class Department(models.Model):
 # Course
 # -------------------------
 class Course(models.Model):
+    """
+    Represents a course under a department.
+    Example: MCA, MSc Computer Science.
+    A course belongs to exactly one department.
+    """
     course_name = models.CharField(max_length=100, unique=True)
     dept = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='courses')
     total_semesters = models.IntegerField(default=4)
@@ -27,6 +48,11 @@ class Course(models.Model):
 # Subject
 # -------------------------
 class Subject(models.Model):
+    """
+    Represents a subject taught in the institution.
+    This does NOT directly connect to courses.
+    The CourseSubject model creates that connection.
+    """
     subject_code = models.CharField(max_length=50, unique=True)
     subject_name = models.CharField(max_length=100)
     credits = models.IntegerField(default=3)
@@ -40,6 +66,11 @@ class Subject(models.Model):
 # CourseSubject (junction)
 # -------------------------
 class CourseSubject(models.Model):
+    """
+    Many-to-Many relationship between Course and Subject.
+    One course can have multiple subjects.
+    One subject can belong to multiple courses.
+    """
     course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_subjects')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='course_subjects')
 
@@ -54,6 +85,10 @@ class CourseSubject(models.Model):
 # Teacher
 # -------------------------
 class Teacher(models.Model):
+    """
+    Teacher model linked to the custom User model using OneToOne relation.
+    Contains faculty information like employee code, department and designation.
+    """
     # FIXED → use settings.AUTH_USER_MODEL
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -77,6 +112,10 @@ class Teacher(models.Model):
 # TeacherSubject (junction)
 # -------------------------
 class TeacherSubject(models.Model):
+    """
+    Junction table for assigning a teacher to teach a specific subject
+    for a specific course.
+    """
     teacher = models.ForeignKey(Teacher, on_delete=models.CASCADE, related_name='teacher_subjects')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='teacher_subjects')
     course = models.ForeignKey(
@@ -96,6 +135,10 @@ class TeacherSubject(models.Model):
 # Student
 # -------------------------
 class Student(models.Model):
+    """
+    Student model linked to custom user model.
+    Stores academic information like roll number, course and semester.
+    """
     # FIXED → use settings.AUTH_USER_MODEL
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
@@ -116,6 +159,10 @@ class Student(models.Model):
 # StudentSubjectEnrollment
 # -------------------------
 class StudentSubjectEnrollment(models.Model):
+    """
+    Tracks which student is enrolled in which subject with respect to semester.
+    Used for attendance validation.
+    """
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='enrollments')
     subject = models.ForeignKey(Subject, on_delete=models.CASCADE, related_name='enrollments')
     current_semester = models.IntegerField(null=True, blank=True)
