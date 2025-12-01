@@ -17,8 +17,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView
+from django.http import JsonResponse
+
+from django.http import JsonResponse
+
+def home(request):
+    return JsonResponse({
+        "status": "running ",
+        "message": "Welcome to AttendEase — Your Attendance Management API is live!",
+    })
 
 urlpatterns = [
+    path('',home),
     path('admin/', admin.site.urls),
     path('api/', include('core.urls')),
     path('api/', include('account.urls')),
