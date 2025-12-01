@@ -325,29 +325,6 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
     
     def validate(self, attrs):
             email = attrs['email']
-            # if User.objects.filter(email=email).exists():
-            #     user = User.objects.get(email = email)
-            #     uid = urlsafe_base64_encode(force_bytes(user.id))
-            #     print('Encoded UID', uid)
-            #     token = PasswordResetTokenGenerator().make_token(user)
-            #     print('Password Reset Token', token)
-            #     frontend_domain = os.environ.get('FRONTEND_URL')
-            #     link = f'{frontend_domain}/reset/'+uid+'/'+token
-            #     print('Password Reset Link', link)
-
-            #     #?: This Feature is in Working Mode
-            #     # Send EMail
-            #     body = 'Click Following Link to Reset Your Password '+link
-            #     data = {
-            #         'subject':'Reset Your Password',
-            #         'body':body,
-            #         'to_email':user.email
-            #     }
-            #     Util.send_email(data)
-
-            #     return attrs
-            # else:
-            #     raise serializers.ValidationError('You are Not a Registered User')
 
             # Check if user exists
             if not User.objects.filter(email=email).exists():
