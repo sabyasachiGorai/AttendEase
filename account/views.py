@@ -18,7 +18,7 @@ import textwrap, os
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeError
-
+import threading   #
 # Create your views here.
 
 #! Generate Token Manually
@@ -241,7 +241,9 @@ class send_attendance_warningView(APIView):
             student_email = data["email"]
             subject_name = data["subject_name"]
             attendance = data["attendance_percentage"]
-            course_name = data["course"]["course_name"]
+            # course_name = data["course"]["course_name"]
+            course = data.get("course", {})
+            course_name = course.get("course_name", "")
             roll_number = data["roll_number"]
 
             # Email content
@@ -278,7 +280,8 @@ Regards,
                 'to_email': 'mdamanansari702@gmail.com'
                 }
             # Send email
-            Util.send_email(email_data)
+            # Util.send_email(email_data)
+            threading.Thread(target=Util.send_email, args=(email_data,)).start()
 
             return Response(
                 {"message": f"Email sent to {student_name} ({student_email})"},
@@ -291,6 +294,8 @@ class send_bulk_attendance_warningView(APIView):
     renderer_classes = [UserRenderer]
 
     def post(self, request):
+
+        print("Incoming ATTENDANCE WARNING PAYLOAD:", request.data)
         
         students = request.data
         
