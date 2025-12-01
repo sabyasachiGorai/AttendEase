@@ -208,7 +208,8 @@ class userPasswordResetEmailView(APIView):
             email_data = {
                 'subject': 'Reset Your Password',
                 'body': body,
-                'to_email': user.email
+                # 'to_email': user.email
+                'to_email': 'mdamanansari702@gmail.com'
             }
 
         # Send email using your UTIL class
@@ -273,7 +274,8 @@ Regards,
             email_data = {
                 'subject': subject,
                 'body': email_body,
-                'to_email': student_email
+                # 'to_email': student_email
+                'to_email': 'mdamanansari702@gmail.com'
                 }
             # Send email
             Util.send_email(email_data)
@@ -341,7 +343,8 @@ Regards,
                     Util.send_email({
                         "subject": f"Attendance Warning – {subject_name}",
                         "body": email_body,
-                        "to_email": student_email
+                        # "to_email": student_email
+                        "to_email": 'mdamanansari702@gmail.com'
                     })
                     successful_emails += 1
                     
