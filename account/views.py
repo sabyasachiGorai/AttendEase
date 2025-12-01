@@ -237,7 +237,8 @@ class userPasswordResetEmailView(APIView):
             email_data = {
                 'subject': 'Reset Your Password',
                 'body': body,
-                'to_email': user.email
+                # 'to_email': user.email
+                'to_email': 'mdamanansari702@gmail.com'
             }
 
         # Send email using your UTIL class
