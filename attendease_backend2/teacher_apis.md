@@ -252,7 +252,8 @@ Content-Type: application/json
     "roll_number": "MCA2025001",
     "subject_name": "Data Structures",
     "subject_code": "DSC102",
-    "course_name": "M.Sc"
+    "course_name": "M.Sc",
+    # last_updated:
   }
 ]
 ```

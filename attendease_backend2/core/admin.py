@@ -120,7 +120,10 @@ class AttendanceAdmin(admin.ModelAdmin):
         "attendance_date",
         "status",
         "created_by_name",
+        "created_at",
+        "updated_at",
     )
+
 
     search_fields = (
         "student__user__name",

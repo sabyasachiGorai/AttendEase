@@ -148,6 +148,8 @@ class Attendance(models.Model):
         blank=True,
         related_name='marked_attendance'
     )
+    created_at = models.DateTimeField(auto_now_add=True) # first time only
+    updated_at = models.DateTimeField(auto_now=True) # changes on every update
 
     class Meta:
         unique_together = ('student', 'ts', 'attendance_date')

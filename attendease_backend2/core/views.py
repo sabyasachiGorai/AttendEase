@@ -334,8 +334,11 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 "roll_number": student.roll_number,
                 "subject_name": subject.subject_name,
                 "subject_code": subject.subject_code,
-                "course_name": course.course_name
+                "course_name": course.course_name,
+                "created_at": rec.created_at,
+                "updated_at": rec.updated_at
             })
+
 
         return Response(sorted(output, key=lambda x: x["date"], reverse=True))
 
