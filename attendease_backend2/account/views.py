@@ -10,8 +10,11 @@ from .serializers import (userRegistrationSerializer, userLoginSerializer, UserP
                             changeUserPasswordSerializer, userPasswordResetEmailSerializer,
                             UserPasswordResetSerializer, StudentRegistrationSerializer,
                             teacherRegistrationSerializer, TeacherProfileSerializer,
-                            StudentProfileSerializer)
+                            StudentProfileSerializer, AttendanceWarningSerializer)
 from account.permissions import IsTeacher, IsStudent, IsAdmin
+from django.conf import settings
+from account.utils import Util
+import textwrap
 
 # Create your views here.
 
@@ -199,11 +202,62 @@ class userPasswordResetView(APIView):
             return Response({'Email': 'Password reset Successfull.'},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-class send_attendance_emailView(APIView):
+class send_attendance_warningView(APIView):
     permission_classes = [IsAuthenticated, IsTeacher]
     renderer_classes = [UserRenderer]
 
     def post(self, request):
         # Logic to send attendance email
         # This is a placeholder for the actual implementation
-        return Response({'Msg': 'Attendance email sent successfully.'}, status=status.HTTP_200_OK)
+        serializer = AttendanceWarningSerializer(data=request.data)
+        if serializer.is_valid():
+            data = serializer.validated_data
+
+            student_name = data["student_name"]
+            student_email = data["email"]
+            subject_name = data["subject_name"]
+            attendance = data["attendance_percentage"]
+            course_name = data["course"]["course_name"]
+            roll_number = data["roll_number"]
+
+            # Email content
+            subject = f"Attendance Shortage Alert – {subject_name}"
+            email_body = f"""
+                                <pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
+                                Dear <strong>{ student_name }</strong>,
+
+                                --------------------------------------------------
+                                STUDENT DETAILS
+                                --------------------------------------------------
+                                Roll Number : <strong>{ roll_number }</strong>
+                                Course      : <strong>{ course_name }</strong>
+                                Subject     : <strong>{ subject_name }</strong>
+                                --------------------------------------------------
+
+                                This is to inform you that your attendance record has fallen below the required threshold.
+
+                                Your attendance in "<strong>{ subject_name }</strong>" is <strong>{ attendance }%</strong>, which is below 75%.
+
+                                Please take immediate steps to improve your attendance.
+
+                                Regards,
+                                <strong>Department of Computer Science</strong>
+                                </pre>
+
+                        """.strip()
+
+            print(email_body)
+            email_data = {
+                'subject': subject,
+                'body': email_body,
+                # 'to_email': student_email
+                'to_email': 'mdamanansari702@gmail.com'  # For testing purposes
+                }
+            # Send email
+            Util.send_email(email_data)
+
+            return Response(
+                {"message": f"Email sent to {student_name} ({student_email})"},
+                status=status.HTTP_200_OK
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

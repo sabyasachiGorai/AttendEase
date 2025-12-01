@@ -167,9 +167,11 @@ EMAIL_USE_TLS = True
 # Credentials from environment (.env)
 EMAIL_HOST_USER = os.environ.get('EMAIL_USER')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_PASS')
+EMAIL_FROM = os.environ.get('EMAIL_FROM')
 # Helpful defaults
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
+
 
 
 # JWT Settings

@@ -389,3 +389,20 @@ class UserPasswordResetSerializer(serializers.Serializer):
                     PasswordResetTokenGenerator().check_token(user, token)
                     raise serializers.ValidationError('Token Not Valid or expired')
 
+class AttendanceWarningSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    student_name = serializers.CharField()
+    email = serializers.EmailField()
+    roll_number = serializers.CharField()
+    phone_number = serializers.CharField()
+    course = serializers.DictField()
+    current_semester = serializers.IntegerField()
+    year_of_study = serializers.IntegerField()
+    subject_id = serializers.IntegerField()
+    subject_name = serializers.CharField()
+    attendance_percentage = serializers.FloatField()
+
+    def validate_attendance_percentage(self, value):
+        if value >= 75:
+            raise serializers.ValidationError("Attendance ≥ 75%. No email needed.")
+        return value
