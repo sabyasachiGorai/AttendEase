@@ -1,77 +1,102 @@
-from django.contrib.auth import get_user_model
+import random
+import datetime
+from django.db import transaction
+from django.utils import timezone
 from core.models import (
-    Department, Course, Subject, CourseSubject,
-    Teacher, TeacherSubject, Student, StudentSubjectEnrollment, Attendance
+    StudentSubjectEnrollment,
+    TeacherSubject,
+    Attendance
 )
-from django.utils.timezone import now
 
-User = get_user_model()
 
-def run():
-    print("🌱 Seeding database with sample data...")
+@transaction.atomic
+def populate_attendance_3months():
+    print("\n--- Starting Attendance Generation (Last 3 Months) ---")
 
-    # ------------------------
-    # 1. Department
-    # ------------------------
-    cse = Department.objects.create(dept_name="Computer Science")
-    maths = Department.objects.create(dept_name="Mathematics")
+    # 1. Date range (90 days)
+    end_date = timezone.now().date()
+    start_date = end_date - datetime.timedelta(days=90)
 
-    # ------------------------
-    # 2. Courses
-    # ------------------------
-    mca = Course.objects.create(course_name="MCA", dept=cse, total_semesters=4)
-    bsc = Course.objects.create(course_name="BSc Mathematics", dept=maths, total_semesters=6)
+    # 2. Get enrollments (Semester 1 students)
+    enrollments = StudentSubjectEnrollment.objects.filter(
+        current_semester=1
+    ).select_related("student", "subject")
 
-    # ------------------------
-    # 3. Subjects
-    # ------------------------
-    sub1 = Subject.objects.create(subject_code="MCA101", subject_name="Data Structures", credits=4, current_semester=1)
-    sub2 = Subject.objects.create(subject_code="MCA102", subject_name="DBMS", credits=3, current_semester=1)
-    sub3 = Subject.objects.create(subject_code="MCA201", subject_name="Operating Systems", credits=4, current_semester=2)
+    if not enrollments.exists():
+        print("No enrollments found. Run populate_users.py first.")
+        return
 
-    # Link subjects to course (CourseSubject)
-    CourseSubject.objects.create(course=mca, subject=sub1)
-    CourseSubject.objects.create(course=mca, subject=sub2)
-    CourseSubject.objects.create(course=mca, subject=sub3)
+    # 3. TeacherSubject map (subject_id → ts object)
+    ts_map = {ts.subject.id: ts for ts in TeacherSubject.objects.all()}
 
-    # ------------------------
-    # 4. Teacher Users
-    # ------------------------
-    tuser1 = User.objects.create_user(email="t1@example.com", name="Mr. Sharma", role="teacher", password="123456")
-    tuser2 = User.objects.create_user(email="t2@example.com", name="Ms. Neha", role="teacher", password="123456")
+    # 4. Pick 3–4 students who will have <75% attendance
+    all_students = list({e.student for e in enrollments})
+    low_attendance_students = random.sample(all_students, k=min(4, len(all_students)))
 
-    # Teacher profiles
-    teacher1 = Teacher.objects.create(user=tuser1, employee_code="EMP001", department=cse)
-    teacher2 = Teacher.objects.create(user=tuser2, employee_code="EMP002", department=cse)
+    print(f"Low Attendance Students (Forced <75%): {[s.id for s in low_attendance_students]}")
+    print("--- Generating daily attendance ---")
 
-    # ------------------------
-    # 5. TeacherSubject
-    # ------------------------
-    TeacherSubject.objects.create(teacher=teacher1, subject=sub1, course=mca)
-    TeacherSubject.objects.create(teacher=teacher1, subject=sub2, course=mca)
-    TeacherSubject.objects.create(teacher=teacher2, subject=sub3, course=mca)
+    total_created = 0
+    total_updated = 0
 
-    # ------------------------
-    # 6. Student Users
-    # ------------------------
-    suser1 = User.objects.create_user(email="s1@example.com", name="Rahul Kumar", role="student", password="123456")
-    suser2 = User.objects.create_user(email="s2@example.com", name="Priya Singh", role="student", password="123456")
+    current_date = start_date
 
-    # Student profiles
-    student1 = Student.objects.create(user=suser1, roll_number="MCA001", course=mca, current_semester=1, year_of_study=1)
-    student2 = Student.objects.create(user=suser2, roll_number="MCA002", course=mca, current_semester=1, year_of_study=1)
+    while current_date <= end_date:
 
-    # ------------------------
-    # 7. Enroll subjects for students
-    # ------------------------
-    StudentSubjectEnrollment.objects.create(student=student1, subject=sub1, current_semester=1)
-    StudentSubjectEnrollment.objects.create(student=student1, subject=sub2, current_semester=1)
-    StudentSubjectEnrollment.objects.create(student=student2, subject=sub1, current_semester=1)
+        # Skip weekends
+        if current_date.weekday() >= 5:
+            current_date += datetime.timedelta(days=1)
+            continue
 
-    # ------------------------
-    # 8. Attendance for demo
-    # ------------------------
-    Attendance.objects.create(student=student1, ts=TeacherSubject.objects.first(), attendance_date=now(), status="Present")
-    Attendance.objects.create(student=student2, ts=TeacherSubject.objects.first(), attendance_date=now(), status="Absent")
+        # 5% chance of holiday
+        if random.random() < 0.05:
+            print(f"Skipping {current_date} → Simulated Holiday")
+            current_date += datetime.timedelta(days=1)
+            continue
 
-    print("🌱 DONE — Sample Data Inserted Successfully!")
+        print(f"Processing date: {current_date}...")
+
+        # Process attendance for every student in enrollments
+        for enroll in enrollments:
+            student = enroll.student
+            subject = enroll.subject
+
+            ts_obj = ts_map.get(subject.id)
+            if not ts_obj:
+                continue
+
+            # Attendance probability
+            if student in low_attendance_students:
+                # Low attendance students (Only ~40% present)
+                status = "Present" if random.random() < 0.40 else "Absent"
+            else:
+                # Normal students (85% present)
+                status = "Present" if random.random() > 0.15 else "Absent"
+
+            # Update existing record OR create new one
+            obj, created = Attendance.objects.update_or_create(
+                student=student,
+                ts=ts_obj,
+                attendance_date=current_date,
+                defaults={
+                    "status": status,
+                    "created_by": ts_obj.teacher
+                }
+            )
+
+            if created:
+                total_created += 1
+            else:
+                total_updated += 1
+
+        # Move to next day
+        current_date += datetime.timedelta(days=1)
+
+    print("\n--- Attendance Generation Complete ---")
+    print(f"Created records: {total_created}")
+    print(f"Updated records: {total_updated}")
+    print("---------------------------------------\n")
+
+
+# Execute
+populate_attendance_3months()

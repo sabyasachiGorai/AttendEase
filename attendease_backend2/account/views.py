@@ -169,8 +169,6 @@ class StudentProfileView(APIView):
         serializer = StudentProfileSerializer(student)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    
-
 class changeUserPasswordView(APIView):
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]
@@ -200,3 +198,12 @@ class userPasswordResetView(APIView):
         if serializer.is_valid(raise_exception=True):
             return Response({'Email': 'Password reset Successfull.'},status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class send_attendance_emailView(APIView):
+    permission_classes = [IsAuthenticated, IsTeacher]
+    renderer_classes = [UserRenderer]
+
+    def post(self, request):
+        # Logic to send attendance email
+        # This is a placeholder for the actual implementation
+        return Response({'Msg': 'Attendance email sent successfully.'}, status=status.HTTP_200_OK)

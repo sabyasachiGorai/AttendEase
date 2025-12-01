@@ -3,6 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+from django.db.models import Count, Q
 
 from account.permissions import IsTeacher, IsStudent, IsAdmin
 from rest_framework_simplejwt.tokens import AccessToken
@@ -140,9 +141,21 @@ class TeacherStudentsView(APIView):
             student = enroll.student
             subject = enroll.subject
 
-            records = Attendance.objects.filter(student=student, ts__subject_id=subject.id)
-            total = records.count()
-            attended = records.filter(status="Present").count()
+            # records = Attendance.objects.filter(student=student, ts__subject_id=subject.id)
+            # total = records.count()
+            # attended = records.filter(status="Present").count()
+            # percent = round((attended / total * 100), 2) if total else 0
+
+            stats = Attendance.objects.filter(
+                    student=student,
+                    ts__subject_id=subject.id
+                ).aggregate(
+                    total=Count('id'),
+                    attended=Count('id', filter=Q(status="Present"))
+                )
+
+            total = stats['total'] or 0
+            attended = stats['attended'] or 0
             percent = round((attended / total * 100), 2) if total else 0
 
             output.append({

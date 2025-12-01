@@ -343,7 +343,7 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
                     'body':body,
                     'to_email':user.email
                 }
-                # Util.send_email(data)
+                Util.send_email(data)
 
                 return attrs
             else:
