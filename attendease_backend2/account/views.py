@@ -344,6 +344,7 @@ Regards,
                         "to_email": student_email
                     })
                     successful_emails += 1
+                    
                 except:
                     failed_emails.append(student_name)
             else:
