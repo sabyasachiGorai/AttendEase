@@ -1,3 +1,16 @@
+"""
+-----------------------------------------------------------------------
+Project     : AttendEase – Smart Attendance Management System
+Module      : serializers.py
+Author      : Sabyasachi Gorai
+Description :
+    This file contains all serializer classes used for converting
+    Django ORM model instances into JSON format, and validating incoming
+    API request data. These serializers bridge the communication between
+    database models and API endpoints.
+-----------------------------------------------------------------------
+"""
+
 from rest_framework import serializers
 from .models import (
     Department, Course, Subject, CourseSubject,
@@ -7,6 +20,7 @@ from .models import (
 
 # -------------------------
 # Department
+# Serializes Department model for CRUD operations.
 # -------------------------
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,6 +30,10 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Course
+# Includes:
+#   - dept (nested read-only serializer)
+#   - dept_id (write-only field for creating/updating)
+# This keeps API clean and avoids nested POST issues.
 # -------------------------
 class CourseSerializer(serializers.ModelSerializer):
     dept = DepartmentSerializer(read_only=True)
@@ -32,6 +50,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Subject
+# Adds teacher_name using SerializerMethodField for dynamic computed data.
+# Does NOT include teacher relationship directly to avoid circular nesting.
 # -------------------------
 class SubjectSerializer(serializers.ModelSerializer):
     teacher_name = serializers.SerializerMethodField()
@@ -56,6 +76,7 @@ class SubjectSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # CourseSubject
+# Simple serializer for the junction table.
 # -------------------------
 class CourseSubjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,6 +86,8 @@ class CourseSubjectSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Teacher
+# Uses read-only user field because teachers are linked to user accounts.
+# department_id is the write-only version of department.
 # -------------------------
 class TeacherSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)  # FIXED
@@ -82,6 +105,7 @@ class TeacherSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # TeacherSubject
+# Used for assigning a teacher to teach a specific subject in a course.
 # -------------------------
 class TeacherSubjectSerializer(serializers.ModelSerializer):
     class Meta:
@@ -91,6 +115,8 @@ class TeacherSubjectSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Student
+# Contains nested course details (read)
+# but accepts course_id (write) for clean API requests.
 # -------------------------
 class StudentSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(read_only=True)   # FIXED
@@ -117,6 +143,7 @@ class StudentSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Student Subject Enrollment
+# Handles storing which student is enrolled in which subject.
 # -------------------------
 class StudentSubjectEnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -126,6 +153,8 @@ class StudentSubjectEnrollmentSerializer(serializers.ModelSerializer):
 
 # -------------------------
 # Attendance
+# Straightforward serializer for attendance records.
+# No custom fields needed.
 # -------------------------
 class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
