@@ -351,17 +351,14 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
                 raise serializers.ValidationError('You are Not a Registered User') 
 
 class UserPasswordResetSerializer(serializers.Serializer):
-
-        old_password = serializers.CharField(style={'input_type': 'password'},required=True, write_only=True)
         password = serializers.CharField(style={'input_type': 'password'},required=True, write_only=True)
         password2 = serializers.CharField(style={'input_type': 'password'},required=True, write_only=True)
 
         class Meta:
-            fields = ['old_password','password', 'password2']
+            fields = ['password', 'password2']
 
         def validate(self, attrs):
             try:
-                old_password = attrs['old_password']
                 # user = self.context.get('user')
                 password = attrs['password']
                 password2 = attrs['password2']
@@ -373,9 +370,6 @@ class UserPasswordResetSerializer(serializers.Serializer):
                 user = User.objects.get(id=id)
 
                 if password!=password2:
-                    raise serializers.ValidationError('Password: The Password does not Match')
-
-                if not user.check_password(old_password):
                     raise serializers.ValidationError('Password: The Password does not Match')
 
                 token_gen = PasswordResetTokenGenerator()
