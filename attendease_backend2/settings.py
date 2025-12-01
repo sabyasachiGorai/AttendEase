@@ -34,11 +34,13 @@ SECRET_KEY = os.environ.get("SECRET_KEY") or "local-secret-key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
-DEBUG = os.environ.get("DEBUG", "False") == "True"
+# DEBUG = os.environ.get("DEBUG", "False") == "True"
+DEBUG=False
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "*").split(",")
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 
 # Application definition
@@ -64,6 +66,10 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     )
 }
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-4f452.up.railway.app",
+    "https://*.up.railway.app"
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
