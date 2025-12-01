@@ -30,7 +30,7 @@ load_dotenv(os.path.join(BASE_DIR.parent, ".env"))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # SECRET_KEY = 'django-insecure-$@84t0x762$bhm(wh3w5brz7ra%-6&r83lla_1*1-i$*itypww'
-SECRET_KEY = os.environ.get("SECRET_KEY")
+SECRET_KEY = os.environ.get("SECRET_KEY") or "local-secret-key"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -110,9 +110,20 @@ WSGI_APPLICATION = 'attendease_backend2.wsgi.application'
 # }
 
 
-DATABASES = {
-    "default": dj_database_url.parse(os.environ.get("DATABASE_URL"))
-}
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+if DATABASE_URL:
+    DATABASES = {
+        "default": dj_database_url.parse(DATABASE_URL)
+    }
+else:
+    # Local development uses SQLite
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # DATABASES = {
