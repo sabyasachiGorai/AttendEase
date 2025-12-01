@@ -1,3 +1,28 @@
+"""
+---------------------------------------------------------------------------
+Project     : AttendEase – Smart Attendance Management System
+Module      : views.py
+Author      : Sabyasachi Gorai
+Description :
+    This module contains all API views and viewsets used across the
+    AttendEase backend. These views handle:
+
+        • Admin CRUD operations for departments, courses, subjects, etc.
+        • Teacher-specific features such as assigned subjects, student lists,
+          attendance marking, and attendance analytics.
+        • Student features such as viewing personal attendance, subject-wise
+          performance, and subject enrollment.
+        • Secure access control using custom permissions
+          (IsAdmin, IsTeacher, IsStudent).
+        • Integration with Django REST Framework viewsets, APIViews, and
+          custom @action routes for cleaner API design.
+
+    All database interactions are performed using Django ORM with
+    proper filtering, annotation, and optimized query handling.
+---------------------------------------------------------------------------
+"""
+
+
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -20,12 +45,17 @@ from .serializers import (
 )
 
 # Utility: Extract user-id from token (optional use)
+# --------------------------------------------------------------
+# Utility function (Optional helper)
+# Extracts user_id from JWT token manually if required.
+# --------------------------------------------------------------
 def get_user_id_from_token(token):
     access_token = AccessToken(token)
     return access_token['user_id']
 
 # ============================================================
 # ADMIN CRUD (Optional Admin-only)
+# Only admins can access these viewsets
 # ============================================================
 
 class DepartmentViewSet(viewsets.ModelViewSet):
@@ -60,7 +90,10 @@ class TeacherViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsTeacher]
     queryset = Teacher.objects.all()
     serializer_class = TeacherSerializer
-
+     # ----------------------------------------------------------
+    # GET /teachers/subjectwise/
+    # Returns all subjects assigned to the logged-in teacher.
+    # ----------------------------------------------------------
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsTeacher])
     def subjectwise(self, request):
         teacher_id = request.user.teacher_profile.id
@@ -90,6 +123,9 @@ class TeacherViewSet(viewsets.ModelViewSet):
 
 
 class TeacherSubjectViewSet(viewsets.ModelViewSet):
+    """
+    Admin-only viewset to assign a teacher to a subject for a specific course.
+    """
     permission_classes = [IsAuthenticated, IsAdmin]
     queryset = TeacherSubject.objects.all()
     serializer_class = TeacherSubjectSerializer
@@ -111,6 +147,10 @@ class StudentViewSet(viewsets.ModelViewSet):
 # ============================================================
 
 class TeacherStudentsView(APIView):
+    """
+    Allows a teacher to view all students enrolled in the subjects
+    he/she teaches. Also computes attendance percentage for each student.
+    """
     permission_classes = [IsAuthenticated, IsTeacher]
 
     def get(self, request, teacher_id):
@@ -180,6 +220,10 @@ class TeacherStudentsView(APIView):
         return Response(output)
 
 class TeacherSubjectIDs(APIView):
+    """
+    Returns the list of TS (TeacherSubject) IDs + details
+    for the logged-in teacher.
+    """
     permission_classes = [IsAuthenticated, IsTeacher]
 
     def get(self, request):
@@ -226,6 +270,7 @@ class StudentSubjectEnrollmentViewSet(viewsets.ModelViewSet):
 
 # ============================================================
 # ATTENDANCE VIEWS
+# Handles attendance marking + analytics
 # ============================================================
 
 class AttendanceViewSet(viewsets.ModelViewSet):
@@ -233,6 +278,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     serializer_class = AttendanceSerializer
 
     # Teacher-only: Mark attendance
+    # ----------------------------------------------------------
+    # POST /attendance/mark/
+    # Teacher marks attendance (present/absent lists)
+    # ----------------------------------------------------------
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated, IsTeacher])
     def mark(self, request):
         teacher = request.user.teacher_profile
@@ -287,6 +336,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 
 
     # Teacher-only: Attendance history
+    # ----------------------------------------------------------
+    # GET /attendance/teacherwise/
+    # Teacher can filter/view attendance history
+    # ----------------------------------------------------------
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated, IsTeacher])
     def teacherwise(self, request):
         teacher = request.user.teacher_profile
@@ -349,6 +402,10 @@ class AttendanceViewSet(viewsets.ModelViewSet):
 # ============================================================
 
 class CourseSubjectsView(APIView):
+    """
+    Returns all subjects for a given course.
+    Supports optional semester filtering.
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, course_id):
@@ -369,6 +426,9 @@ class CourseSubjectsView(APIView):
 # ============================================================
 
 class StudentSubjectsAttendance(APIView):
+    """
+    Returns summary attendance for all subjects of the logged-in student.
+    """
     permission_classes = [IsAuthenticated, IsStudent]
 
     def get(self, request):
@@ -413,6 +473,9 @@ class StudentSubjectsAttendance(APIView):
 
 
 class StudentSubjectWiseAttendance(APIView):
+    """
+    Returns date-wise attendance details for one subject for the logged-in student.
+    """
     permission_classes = [IsAuthenticated, IsStudent]
 
     def get(self, request):
