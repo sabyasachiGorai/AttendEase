@@ -94,24 +94,24 @@ WSGI_APPLICATION = 'attendease_backend2.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'users',
-#         'USER': 'postgres',
-#         'PASSWORD': 'root',
-#         'HOST': 'localhost',   # or IP / domain
-#         'PORT': '5432',
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
 #     }
 # }
+
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'users',
+        'USER': 'postgres',
+        'PASSWORD': 'root',
+        'HOST': 'localhost',   # or IP / domain
+        'PORT': '5432',
+    }
+}
 
 
 #! If you have created the Custom user Model
@@ -158,6 +158,11 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+
+# BREVO Email Service Configuration
+BREVO_API_KEY = os.environ.get('BREVO_API_KEY') # Your Brevo API Key from .env
+BREVO_SENDER_EMAIL = os.environ.get('BREVO_SENDER_EMAIL') # Your verified sender email from .env
 
 # Email Configuration
 EMAIL_BACKEND="django.core.mail.backends.smtp.EmailBackend"

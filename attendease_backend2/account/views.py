@@ -269,15 +269,18 @@ Regards,
 
 """.strip()
 
-            print(email_body)
-            email_data = {
-                'subject': subject,
-                'body': email_body,
-                'to_email': student_email
-                }
-            # Send email
-            Util.send_email(email_data)
+            email_sent = Util.send_email({
+                "subject": subject,
+                "body": email_body,
+                # "to_email": student_email
+                "to_email": 'mdamanansari702@gmail.com'  # TESTING PURPOSES
+            })
 
+            if not email_sent:
+                return Response(
+                    {"error": "Failed to send email. Please try again later."},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             return Response(
                 {"message": f"Email sent to {student_name} ({student_email})"},
                 status=status.HTTP_200_OK
@@ -289,11 +292,13 @@ class send_bulk_attendance_warningView(APIView):
     renderer_classes = [UserRenderer]
 
     def post(self, request):
-        
         students = request.data
-        
+
         if not isinstance(students, list):
-            return Response({'error': 'Invalid data format. Expected a list of students.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {'error': 'Invalid data format. Expected a list of students.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
         successful_emails = 0
         failed_emails = []
@@ -301,20 +306,26 @@ class send_bulk_attendance_warningView(APIView):
         for student_data in students:
             serializer = AttendanceWarningSerializer(data=student_data)
 
-            if serializer.is_valid():
-                data = serializer.validated_data
+            # ❌ Invalid serializer → add to failed list
+            if not serializer.is_valid():
+                failed_emails.append(student_data.get("student_name", "Unknown Student"))
+                continue
 
-                student_name = data["student_name"]
-                student_email = data["email"]
-                subject_name = data["subject_name"]
-                attendance = data["attendance_percentage"]
-                course_name = data["course"]["course_name"]
-                roll_number = data["roll_number"]
+            data = serializer.validated_data
 
-                # Email content
-                subject = f"Attendance Shortage Alert – {subject_name}"
-                email_body = f"""
-<pre style="font-family: Consolas, 'Courier New', monospace; font-size: 15px; line-height: 1.5;">
+            student_name = data["student_name"]
+            student_email = data["email"]
+            subject_name = data["subject_name"]
+            attendance = data["attendance_percentage"]
+            course_name = data["course"]["course_name"]
+            roll_number = data["roll_number"]
+
+            # Email Subject
+            subject = f"Attendance Shortage Alert – {subject_name}"
+
+            # Email HTML Body
+            email_body = f"""
+<pre style="font-family: Consolas, monospace; font-size: 15px; line-height: 1.5;">
 Dear <strong>{ student_name }</strong>,
 
 --------------------------------------------------
@@ -334,20 +345,20 @@ Please take immediate steps to improve your attendance.
 Regards,
 <strong>Department of Computer Science</strong>
 </pre>
-
 """.strip()
 
-                try:
-                    Util.send_email({
-                        "subject": f"Attendance Warning – {subject_name}",
-                        "body": email_body,
-                        "to_email": student_email
-                    })
-                    successful_emails += 1
-                except:
-                    failed_emails.append(student_name)
+            # Send email using Brevo API
+            email_sent = Util.send_email({
+                "subject": subject,
+                "body": email_body,
+                # "to_email": student_email
+                "to_email": 'mdamanansari702@gmail.com'  # TESTING PURPOSES
+            })
+
+            if email_sent:
+                successful_emails += 1
             else:
-                failed_emails.append(student_data.get("student_name"))
+                failed_emails.append(student_name)
 
         return Response({
             "message": "Bulk email process completed",
