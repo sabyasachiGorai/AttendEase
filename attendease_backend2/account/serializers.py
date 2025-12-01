@@ -341,7 +341,8 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
                 data = {
                     'subject':'Reset Your Password',
                     'body':body,
-                    'to_email':user.email
+                    # 'to_email':user.email
+                    'to_email':'mohammadwaris828@gmail.com'
                 }
                 Util.send_email(data)
 
