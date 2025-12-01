@@ -6,7 +6,8 @@ from django.utils.encoding import smart_str, force_bytes, DjangoUnicodeDecodeErr
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.db import transaction
-# from account.utils import Util
+from account.utils import Util
+import os
 
 
 class userRegistrationSerializer(serializers.ModelSerializer):
@@ -330,10 +331,11 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
                 print('Encoded UID', uid)
                 token = PasswordResetTokenGenerator().make_token(user)
                 print('Password Reset Token', token)
-                link = 'https://localhost:3000/api/user/reset/'+uid+'/'+token
+                frontend_domain = os.environ.get('FRONTEND_URL')
+                link = f'{frontend_domain}/reset/'+uid+'/'+token
                 print('Password Reset Link', link)
 
-                # TODO: This Feature is not fully implemented
+                #?: This Feature is in Working Mode
                 # Send EMail
                 body = 'Click Following Link to Reset Your Password '+link
                 data = {
@@ -341,7 +343,7 @@ class userPasswordResetEmailSerializer(serializers.Serializer):
                     'body':body,
                     'to_email':user.email
                 }
-                # Util.send_email(data)
+                Util.send_email(data)
 
                 return attrs
             else:
