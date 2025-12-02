@@ -46,7 +46,7 @@ Your frontend directly communicates with Railway through this base URL.
 | Backend  | Django, DRF                           |
 | Auth     | JWT (SimpleJWT)                       |
 | Database | SQLite (dev), PostgreSQL (production) |
-| Hosting  | Railway                               |
+| Hosting  | Railway(Backend) & Vercel(Frontend)   |
 | Frontend | React (Vite)                        |
 
 ---
@@ -182,6 +182,12 @@ CORS is already enabled globally in your settings:
 
 ```python
 CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:3000",
+    "https://attend-ease-frontend-chi.vercel.app/"
+]
 ```
 
 So Vercel frontend can communicate without issues.
@@ -198,17 +204,18 @@ attendease-backend/
 │   ├── urls.py                 # Project routes
 │
 ├── core/                       # Main logic (students, attendance, subjects)
-│   ├── models.py               # Database models (Dept, Course, Student…)  :contentReference[oaicite:1]{index=1}
-│   ├── serializers.py          # Serializers for APIs                     :contentReference[oaicite:2]{index=2}
-│   ├── views.py                # Major API logic (attendance, teacher)    :contentReference[oaicite:3]{index=3}
-│   ├── urls.py                 # All API endpoints                        :contentReference[oaicite:4]{index=4}
+│   ├── models.py               # Database models (Dept, Course, Student…)  
+│   ├── serializers.py          # Serializers for APIs                     
+│   ├── views.py                # Major API logic (attendance, teacher)    
+│   ├── urls.py                 # All API endpoints                        
 │
 ├── account/                    # Authentication system
-│   ├── models.py               # Custom User model                         :contentReference[oaicite:5]{index=5}
-│   ├── serializers.py          # Auth serializers                          :contentReference[oaicite:6]{index=6}
-│   ├── views.py                # Register, login, logout, profile          :contentReference[oaicite:7]{index=7}
-│   ├── permissions.py          # Role-based access                          :contentReference[oaicite:8]{index=8}
-│
+│   ├── models.py               # Custom User model                         
+│   ├── serializers.py          # Auth serializers                          
+│   ├── views.py                # Register, login, logout, profile          
+│   ├── permissions.py          # Role-based access                          
+│   |-- renderers.py            # {"errors":...}
+|   |-- utils.py                # Utility for email sending
 ├── requirements.txt
 └── manage.py
 ```
