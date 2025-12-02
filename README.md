@@ -47,7 +47,7 @@ Your frontend directly communicates with Railway through this base URL.
 | Auth     | JWT (SimpleJWT)                       |
 | Database | SQLite (dev), PostgreSQL (production) |
 | Hosting  | Railway                               |
-| Frontend | React (Vercel)                        |
+| Frontend | React (Vite)                        |
 
 ---
 
@@ -164,8 +164,6 @@ DATABASES = {
 }
 ```
 
-*(You may already have this; skip if configured.)*
-
 ---
 
 # 🔗 Connecting Backend With Frontend
@@ -239,14 +237,14 @@ Below are some key endpoints:
 | GET    | `/api/students/me/attendance/?subject_id=` | Date-wise attendance              |
 
 ---
-
 ### **Teacher**
 
-| GET | `/api/teachers/me/teacher-subject-ids/` | Subjects assigned |
-| GET | `/api/teachers/<id>/students/?subject_id=` | All students for that subject |
+| Method | Endpoint                                   | Description                       |
+| ------ | ------------------------------------------ | --------------------------------- |
+| GET    | `/api/teachers/me/teacher-subject-ids/`    | Subjects assigned |
+| GET    | `/api/teachers/<id>/students/?subject_id=` | All students for that subject |
 | POST | `/api/attendance/mark/` | Mark attendance |
 
----
 
 ### **Admin CRUD**
 
