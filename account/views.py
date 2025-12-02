@@ -1,3 +1,22 @@
+"""
+===========================================================
+ File Name: views.py
+ Author: Aman Ansari
+ Description:
+     This file contains all authentication-related APIs including:
+        - User / Student / Teacher registration
+        - Login & Logout
+        - Profile APIs
+        - Password reset (email-based)
+        - Attendance warning email system (single + bulk)
+     
+     Core technologies used:
+        - Django REST Framework (APIView)
+        - JWT Authentication
+        - Custom User Model integration
+        - Email sending with threading support
+===========================================================
+"""
 from rest_framework.views import APIView
 from .renderers import UserRenderer
 from rest_framework.response import Response
@@ -23,6 +42,15 @@ import threading   #
 
 #! Generate Token Manually
 def get_tokens_for_user(user):
+  """
+    Generates a Refresh and Access token pair for the given user.
+
+    Args:
+        user (User): Authenticated user instance.
+
+    Returns:
+        dict: Contains 'refresh' and 'access' JWT tokens.
+    """
   refresh = RefreshToken.for_user(user)
   return {
       'refresh': str(refresh),
@@ -32,9 +60,15 @@ def get_tokens_for_user(user):
 
 
 class userRegistrationView(APIView):
+    """
+    Handles registration of a regular user (basic user model).
+    """
     renderer_classes = [UserRenderer]
 
     def post(self, request):
+        """
+        Creates a new user account.
+        """
         serializer = userRegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -44,10 +78,15 @@ class userRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)   
 
 class  StudentRegistrationView(APIView):
-
+    """
+    Handles registration for student accounts.
+    """
     renderer_classes = [UserRenderer]
 
     def post(self, request):
+        """
+        Creates a new student + user in a transactional process.
+        """
         serializer = StudentRegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -63,9 +102,15 @@ class  StudentRegistrationView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class teacherRegistrationView(APIView):
+    """
+    Handles registration for teacher accounts.
+    """
     renderer_classes = [UserRenderer]
 
     def post(self, request):
+        """
+        Creates a new teacher + user in a transactional process.
+        """
         serializer = teacherRegistrationSerializer(data=request.data)
 
         if serializer.is_valid():
@@ -82,9 +127,15 @@ class teacherRegistrationView(APIView):
 
 #! User Login View
 class userLoginView(APIView):
+   """
+    Handles authentication of all user types: student, teacher, admin.
+    """
    renderer_classes = [UserRenderer]
 
    def post(self, request):
+        """
+        Validates credentials, finds user profile, and issues tokens.
+        """
         serializer = userLoginSerializer(data=request.data)
       
         if serializer.is_valid():
@@ -129,10 +180,16 @@ class userLoginView(APIView):
    
 # ! User Logout View
 class userLogoutView(APIView):
+    """
+    Handles logout by blacklisting the refresh token.
+    """
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]
 
     def post(self, request):
+        """
+        Invalidates user session by blacklisting refresh token.
+        """
         try:
             refresh_token = request.data["refresh"]
             token = RefreshToken(refresh_token)
@@ -142,6 +199,9 @@ class userLogoutView(APIView):
             return Response({'errors':{'non_field_errors':['Invalid refresh token']}}, status=status.HTTP_400_BAD_REQUEST)
 
 class UserProfileView(APIView):
+    """
+    Fetches details of the currently logged-in user.
+    """
     permission_classes = [IsAuthenticated]
     renderer_classes = [UserRenderer]
 
@@ -150,6 +210,9 @@ class UserProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
 class TeacherProfileView(APIView):
+    """
+    Fetches profile information for the logged-in teacher.
+    """
     permission_classes = [IsAuthenticated, IsTeacher]
     renderer_classes = [UserRenderer]
 
@@ -163,6 +226,9 @@ class TeacherProfileView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 class StudentProfileView(APIView):
+    """
+    Fetches profile information for the logged-in student.
+    """
     permission_classes = [IsAuthenticated, IsStudent]
     renderer_classes = [UserRenderer]
 
@@ -217,6 +283,9 @@ class changeUserPasswordView(APIView):
 #             return Response({'Email': 'Password Reset Email Sent successfully!, Please Check your email.'},status=status.HTTP_200_OK)
 #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 class userPasswordResetEmailView(APIView):
+    """
+    Sends password reset email containing UID + Token.
+    """
     renderer_classes = [UserRenderer]
 
     def post(self, request):

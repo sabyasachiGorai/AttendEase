@@ -1,3 +1,20 @@
+"""
+===========================================================
+ File Name: serializers.py
+ Author: Aman Ansari
+ Description:
+    This file contains all serializers used for:
+        - User registration & authentication
+        - Student and Teacher registration
+        - Profile fetching for students & teachers
+        - Password reset via email (UID + token)
+        - Attendance shortage email alert serializer
+
+    Serializers validate request data and convert it between
+    Python objects ↔ JSON for API communication.
+===========================================================
+"""
+
 from rest_framework import serializers
 from account.models import User
 # from core.models import Student, Course, Semester
@@ -11,6 +28,11 @@ import os
 
 
 class userRegistrationSerializer(serializers.ModelSerializer):
+    """
+    Handles registration of basic User model.
+    Includes password confirmation check and
+    prevents users from registering as admin.
+    """
     password2= serializers.CharField(write_only=True)
 
     class Meta:
@@ -21,6 +43,11 @@ class userRegistrationSerializer(serializers.ModelSerializer):
         }
 
     def validate(self, attrs):
+        """
+        Validates:
+            - role cannot be admin
+            - passwords must match
+        """
         password = attrs['password']
         password2 = attrs['password2']
 
